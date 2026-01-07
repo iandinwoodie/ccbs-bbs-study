@@ -31,10 +31,10 @@ class Typeform:
                     return form.get("title"), form.get("id")
         raise RuntimeError(f"Form with title '{self.TITLE}' not found.")
 
-    def _sanitize_responses(self, responses: dict) -> dict:
+    def _sanitize_responses(self, responses: list) -> list:
         """Sanitizes the responses to remove any PII."""
         owner_ids = {}
-        for response in responses.get("items"):
+        for response in responses:
             for answer in response.get("answers"):
                 if answer.get("type") == "email":
                     owner_ids[answer.get("email")] = response.get("response_id")
@@ -61,23 +61,23 @@ class Typeform:
 
         title, id = self._get_form_id()
         print(f"Pulling responses for form: {title}")
-        responses : dict = self.tf.responses.list(uid=id, pageSize=1000)
-        cnt = responses.get("total_items")
+        result : dict = self.tf.responses.list(uid=id, pageSize=1000)
+        cnt = result.get("total_items")
         if cnt == 0:
             print(f"No responses to pull.")
-        elif cnt >= 1000 or responses.get("page_count") > 1:
+        elif cnt >= 1000 or result.get("page_count") > 1:
             raise RuntimeError("1000 or more responses; requires pagination support.")
         else:
             print(f"Pulling {cnt} responses.")
 
         # Sanitize the responses to remove any PII.
-        responses = self._sanitize_responses(responses)
+        responses = self._sanitize_responses(result.get("items"))
 
         # Create the data directory if it doesn't exist.
         if not self.data_dir.exists():
             self.data_dir.mkdir(parents=True)
 
-        if len(responses.items()) > 0:
+        if len(responses) > 0:
             response_json = json.dumps(responses, indent=2)
             mf_title = to_machine_friendly_title(title)
             response_path = self.data_dir / f"{mf_title}.json"
