@@ -12,9 +12,7 @@ import typeform
 
 class Typeform:
 
-    TITLES = [
-        "Dogs & Children Survey",
-    ]
+    TITLE = "Dogs & Children Survey"
 
     def __init__(self, api_key: str, forms_dir: pathlib.Path, data_dir: pathlib.Path):
         self.tf = typeform.Typeform(token=api_key)
@@ -23,27 +21,25 @@ class Typeform:
         self.forms_dir = forms_dir
         self.data_dir = data_dir
 
-    def _get_form_ids(self) -> dict:
+    def _get_form_id(self) -> tuple[str, str]:
         """Returns a dictionary of form titles and their IDs."""
         pages : int = self.tf.forms.list().get("page_count")
-        ids = {}
         for i in range(pages):
             forms : dict = self.tf.forms.list(page=i + 1)
             for form in forms["items"]:
-                if form.get("title") in self.TITLES:
-                    ids[form.get("title")] = form.get("id")
-        return ids
+                if form.get("title") == self.TITLE:
+                    return form.get("title"), form.get("id")
+        raise RuntimeError(f"Form with title '{self.TITLE}' not found.")
 
-    def _sanitize_responses(self, all_responses: dict) -> dict:
+    def _sanitize_responses(self, responses: dict) -> dict:
         """Sanitizes the responses to remove any PII."""
-        owner_responses = all_responses.get(self.TITLES[0])
         owner_ids = {}
-        for response in owner_responses.get("items"):
+        for response in responses.get("items"):
             for answer in response.get("answers"):
                 if answer.get("type") == "email":
                     owner_ids[answer.get("email")] = response.get("response_id")
                     answer["email"] = response.get("response_id")
-        return all_responses
+        return responses
 
     def pull_forms(self):
         print("Pulling forms from Typeform...")
@@ -51,43 +47,42 @@ class Typeform:
         if not self.forms_dir.exists():
             self.forms_dir.mkdir(parents=True)
 
-        ids : dict = self._get_form_ids()
-        for title, id in ids.items():
-            print(f"Pulling form: {title}")
-            form : dict = self.tf.forms.get(uid=id)
-            form_json = json.dumps(form, indent=2)
-            form_path = self.forms_dir / f"{title.replace(' ', '-')}.json"
-            with open(form_path, "w") as f:
-                f.write(form_json)
+        title, id = self._get_form_id()
+        print(f"Pulling form: {title}")
+        form : dict = self.tf.forms.get(uid=id)
+        form_json = json.dumps(form, indent=2)
+        mf_title = to_machine_friendly_title(title)
+        form_path = self.forms_dir / f"{mf_title}.json"
+        with open(form_path, "w") as f:
+            f.write(form_json)
 
     def pull_responses(self):
         print("Pulling responses from Typeform...")
 
-        ids : dict = self._get_form_ids()
-        unsanitized_responses = {}
-        for title, id in ids.items():
-            print(f"Pulling responses for form: {title}")
-            pages : int = self.tf.responses.list(uid=id).get("page_count")
-            if pages == 0:
-                print(f"No responses to pull.")
-            else:
-                responses : dict = self.tf.responses.list(uid=id)
-                print(f"Pulling {len(responses['items'])} responses.")
-                unsanitized_responses[title] = responses
+        title, id = self._get_form_id()
+        print(f"Pulling responses for form: {title}")
+        responses : dict = self.tf.responses.list(uid=id, pageSize=1000)
+        cnt = responses.get("total_items")
+        if cnt == 0:
+            print(f"No responses to pull.")
+        elif cnt >= 1000 or responses.get("page_count") > 1:
+            raise RuntimeError("1000 or more responses; requires pagination support.")
+        else:
+            print(f"Pulling {cnt} responses.")
 
         # Sanitize the responses to remove any PII.
-        sanitized_responses = self._sanitize_responses(unsanitized_responses)
+        responses = self._sanitize_responses(responses)
 
         # Create the data directory if it doesn't exist.
         if not self.data_dir.exists():
             self.data_dir.mkdir(parents=True)
 
-        for title, responses in sanitized_responses.items():
-            if len(responses.items()) > 0:
-                response_json = json.dumps(responses, indent=2)
-                response_path = self.data_dir / f"{title.replace(' ', '-')}.json"
-                with open(response_path, "w") as f:
-                    f.write(response_json)
+        if len(responses.items()) > 0:
+            response_json = json.dumps(responses, indent=2)
+            mf_title = to_machine_friendly_title(title)
+            response_path = self.data_dir / f"{mf_title}.json"
+            with open(response_path, "w") as f:
+                f.write(response_json)
 
 
 def get_script_dir() -> pathlib.Path:
@@ -103,6 +98,15 @@ def get_forms_dir() -> pathlib.Path:
 def get_data_dir() -> pathlib.Path:
     """Returns the directory where data is stored."""
     return get_script_dir().parent / "data"
+
+
+def to_machine_friendly_title(title : str) -> str:
+    """Returns a machine-friendly version of the given title."""
+    replacements = {
+        " ": "-",
+        "&": "and",
+    }
+    return title.translate(str.maketrans(replacements)).lower()
 
 
 def main():
