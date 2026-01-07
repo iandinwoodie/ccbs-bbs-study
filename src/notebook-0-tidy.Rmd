@@ -1,0 +1,33 @@
+---
+title: "Building Tidy Data"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+# Overview
+
+This notebook serves as reference for the tidying procedures used to prepare the
+study data for analysis.
+
+# Forming the Data Frame
+
+## Loading the Raw Data
+
+Load the raw data.
+
+```{r}
+df <- read.csv('../data/dogs-and-children-survey.csv', header=TRUE, skipNul=TRUE)
+str(df)
+```
+
+## Applying Readable Column Names
+
+TODO
+
