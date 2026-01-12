@@ -1,0 +1,50 @@
+---
+title: "Exploratory Data Analysis"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+# Overview
+
+This notebook documents the exploratory data analysis undertaken for this
+project.
+
+# Loading the Data
+
+Load the tidy data set into memory. If it does not exist, then run the notebook
+that builds it.
+
+```{r}
+tidy_data_filepath <- '../data/tidy.Rds'
+stopifnot(file.exists(tidy_data_filepath))
+
+df <- readRDS(tidy_data_filepath)
+stopifnot(identical(dim(df)+0, c(192, 669)))
+print(df, n=6)
+```
+
+# Summarize Data
+
+```{r}
+summary(df)
+```
+
+```{r}
+# Number of unique owners.
+length(unique(df$owner_id))
+```
+
+# Display Session Info
+
+```{r}
+utils::sessionInfo()
+```
+
