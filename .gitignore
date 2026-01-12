@@ -48,6 +48,9 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
+# Processed data files
+data/*.rds
+
 # Python
 .venv/
 __pycache__/
