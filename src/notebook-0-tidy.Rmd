@@ -16,18 +16,57 @@ knitr::opts_chunk$set(echo=TRUE)
 This notebook serves as reference for the tidying procedures used to prepare the
 study data for analysis.
 
-# Forming the Data Frame
+# Form the Data Frame
 
-## Loading the Raw Data
+## Load the Raw Data
 
-Load the raw data.
+The raw data is loaded from a CSV file exported from Typeform.
 
 ```{r}
-df <- read.csv('../data/dogs-and-children-survey.csv', header=TRUE, skipNul=TRUE)
-str(df)
+# Ignore the first two columns; they are junk.
+df <- readr::read_csv('../data/dogs-and-children-survey.csv')
+
+# Assert that the data set is 192 rows and 676 cols.
+stopifnot(identical(dim(df)+0, c(192, 676)))
 ```
 
-## Applying Readable Column Names
+We update the data frame column names to be more friendly to work with during
+analysis.
 
-TODO
+```{r}
+# Apply analysis friendly column names.
+colnames(df) <- readr::read_csv('../data/column-names.csv') %>%
+  dplyr::pull('readable')
+
+# Peek at the data.
+print(df, n=6)
+```
+
+# Drop Unnecessary Columns
+
+We drop columns that will not be used in analysis.
+
+```{r}
+df <- df %>%
+  select(-c(idx, id, start_date_utc, stage_date_utc, submit_date_utc, tags,
+            ending))
+
+# Assert size after dropping columns.
+stopifnot(identical(dim(df)+0, c(192, 669)))
+```
+
+# Save the Tidy Data    
+    
+Save the data to a file in the data directory using RDS format so that the data    
+types are stored and the resulting file is compressed.    
+    
+```{r}
+saveRDS(df, '../data/tidy.Rds')    
+```  
+
+# Display Session Info
+
+```{r}
+utils::sessionInfo()
+```
 

@@ -1,0 +1,677 @@
+readable,original
+idx,idx
+id,id
+child_cnt,How many children do you have?
+has_child_been_bitten,Have any of your children ever been bitten by one or more of your dog(s)?
+child_id,The next questions should be answered for one child's experience. Please give the child's first name or initial
+child_sex,What gender is {{field:6957a284-41a8-43d8-985b-604401786234}}?
+child_age_at_bite,How old was {{field:6957a284-41a8-43d8-985b-604401786234}} at the time of the bite?
+personality_at_bite__shy,Shy
+personality_at_bite__quiet,Quiet
+personality_at_bite__calm,Calm
+personality_at_bite__good_listener,Good Listener
+personality_at_bite__outgoing,Outgoing
+personality_at_bite__energetic,Energetic
+personality_at_bite__difficulty_with_impulse_control,Difficulty with impulse control
+personality_at_bite__emotional,Emotional
+personality_at_bite__loud,Loud
+personality_at_bite__aggressive,Aggressive
+personality_at_bite__happy,Happy
+personality_at_bite__other,Other
+desc_action_prior_to_bite,Which of the following best describes the actions prior to the bite?
+dog_behavior_prior_to_bite__air_snapped,Air-Snapped
+dog_behavior_prior_to_bite__bared_teeth_lifted_lips,Bared Teeth/Lifted Lips
+dog_behavior_prior_to_bite__barked,Barked
+dog_behavior_prior_to_bite__cowered_away,Cowered Away
+dog_behavior_prior_to_bite__growled,Growled
+dog_behavior_prior_to_bite__lunged,Lunged
+dog_behavior_prior_to_bite__raised_hackles, Raised Hackles (fur on their back)
+dog_behavior_prior_to_bite__tucked_tail,Tucked Tail
+dog_behavior_prior_to_bite__whale_eye,"Whale Eye (whites of the dog's eyes are showing, like a slide-eye look)"
+dog_behavior_prior_to_bite__none,None
+dog_behavior_prior_to_bite__other,Other.1
+triggered_bite__hugged_the_dog,Hugged the dog
+triggered_bite__pet_head,Pet the dog on the head
+triggered_bite__pet_legs_paws,Pet the dog on its legs or paws
+triggered_bite__belly_rub,Gave the dog a belly rub
+triggered_bite__approached_dog_with_toy,Approached the dog while it had a toy
+triggered_bite__approached_dog_while_eating,Approached the dog while it was eating or near its food bowl
+triggered_bite__approached_dog_while_chewing,"Approached the dog while it was chewing a bone, rawhide, or treat"
+triggered_bite__approached_dog_while_sleeping,"Approached the dog while it was on it's bed, in it's crate, or sleeping"
+triggered_bite__picked_up_dog,Picked the dog up
+triggered_bite__ran_at_dog,Ran toward the dog
+triggered_bite__child_running,Child was running around
+triggered_bite__stepped_fell_on_dog,Stepped or fell on the dog
+triggered_bite__restrained_dog,Tried to stop the dog from doing something (restraining the dog)
+triggered_bite__touch_collar,Put on or take off its collar
+triggered_bite__no_obvious_trigger,No obvious trigger
+triggered_bite__other,Other.2
+was_dog_leashed,Was the dog leashed or tethered when the bite occurred?
+bite_location__arms,Arms
+bite_location__back,Back
+bite_location__face,Face
+bite_location__feet,Feet
+bite_location__hands,Hands
+bite_location__head,Head
+bite_location__legs,Legs
+bite_location__torso,Torso
+bite_location__other,Other.3
+bite_severity,What was the severity of the bite?
+bite_severity__other,Other.4
+dog_age_at_bite,How old was the dog?
+dog_sex,What gender was the dog?
+dog_breed_category,What best describes the dog's breed?
+dog_purebred_breed,What breed?
+dog_hybrid_breed__affenpinscher,Affenpinscher
+dog_hybrid_breed__afghan_hound,Afghan Hound
+dog_hybrid_breed__airedale_terrier,Airedale Terrier
+dog_hybrid_breed__akita,Akita
+dog_hybrid_breed__alaskan_malamute,Alaskan Malamute
+dog_hybrid_breed__american_english_coonhound,American English Coonhound
+dog_hybrid_breed__american_eskimo,American Eskimo
+dog_hybrid_breed__american_foxhound,American Foxhound
+dog_hybrid_breed__american_hairless_terrier,American Hairless Terrier
+dog_hybrid_breed__american_staffordshire_terrier,American Staffordshire Terrier
+dog_hybrid_breed__american_water_spaniel,American Water Spaniel
+dog_hybrid_breed__anatolian_sheepdog,Anatolian Sheepdog
+dog_hybrid_breed__australian_cattle_dog,Australian Cattle Dog
+dog_hybrid_breed__australian_shepherd,Australian Shepherd
+dog_hybrid_breed__australian_terrier,Australian Terrier
+dog_hybrid_breed__basenji,Basenji
+dog_hybrid_breed__basset_hound,Basset Hound
+dog_hybrid_breed__beagle,Beagle
+dog_hybrid_breed__bearded_collie,Bearded Collie
+dog_hybrid_breed__beauceron,Beauceron
+dog_hybrid_breed__bedlington_terrier,Bedlington Terrier
+dog_hybrid_breed__belgian_laekenois,Belgian Laekenois
+dog_hybrid_breed__belgian_malinois,Belgian Malinois
+dog_hybrid_breed__belgian_sheepdog,Belgian Sheepdog
+dog_hybrid_breed__belgian_tervuren,Belgian Tervuren
+dog_hybrid_breed__bergamasco,Bergamasco
+dog_hybrid_breed__berger_picard,Berger Picard
+dog_hybrid_breed__bernese_mountain_dog,Bernese Mountain Dog
+dog_hybrid_breed__bichon_frise,Bichon Frise
+dog_hybrid_breed__black_and_tan_coonhound,Black And Tan Coonhound
+dog_hybrid_breed__black_russian_terrier,Black Russian Terrier
+dog_hybrid_breed__bluetick_coonhound,Bluetick Coonhound
+dog_hybrid_breed__bloodhound,Bloodhound
+dog_hybrid_breed__boerboel,Boerboel
+dog_hybrid_breed__border_collie,Border Collie
+dog_hybrid_breed__border_terrier,Border Terrier
+dog_hybrid_breed__borzoi,Borzoi
+dog_hybrid_breed__boston_terrier,Boston Terrier
+dog_hybrid_breed__bouvier_des_flandres,Bouvier Des Flandres
+dog_hybrid_breed__boykin_spaniel,Boykin Spaniel
+dog_hybrid_breed__boxer,Boxer
+dog_hybrid_breed__briard,Briard
+dog_hybrid_breed__brittany,Brittany
+dog_hybrid_breed__brussels_griffon,Brussels Griffon
+dog_hybrid_breed__bull_dog,Bull Dog
+dog_hybrid_breed__bull_terrier,Bull Terrier
+dog_hybrid_breed__bullmastiff,Bullmastiff
+dog_hybrid_breed__cairn_terrier,Cairn Terrier
+dog_hybrid_breed__canaan_dog,Canaan Dog
+dog_hybrid_breed__cane_corso,Cane corso
+dog_hybrid_breed__cardigan_welsh_corgi,Cardigan Welsh Corgi
+dog_hybrid_breed__cavalier_king_charles_spaniel,Cavalier King Charles Spaniel
+dog_hybrid_breed__cesky_terrier,Cesky Terrier
+dog_hybrid_breed__chesapeake_bay_retriever,Chesapeake Bay Retriever
+dog_hybrid_breed__chihuahua,Chihuahua
+dog_hybrid_breed__chinese_crested,Chinese Crested
+dog_hybrid_breed__chinese_shar_pei,Chinese Shar Pei
+dog_hybrid_breed__chinook,Chinook
+dog_hybrid_breed__chow_chow,Chow Chow
+dog_hybrid_breed__cirneco_delletna,Cirneco dell'Etna
+dog_hybrid_breed__clumber_spaniel,Clumber Spaniel
+dog_hybrid_breed__cocker_spaniel_american,Cocker Spaniel-American
+dog_hybrid_breed__cocker_spaniel_english,Cocker Spaniel-English
+dog_hybrid_breed__collie_rough_and_smooth,Collie (Rough) & (Smooth)
+dog_hybrid_breed__coton_de_tulear,Coton de Tulear
+dog_hybrid_breed__curly_coated_retriever,Curly Coated Retriever
+dog_hybrid_breed__dachshund,Dachshund
+dog_hybrid_breed__dalmatian,Dalmatian
+dog_hybrid_breed__dandie_dinmont_terrier,Dandie Dinmont Terrier
+dog_hybrid_breed__doberman_pinscher,Doberman Pinscher
+dog_hybrid_breed__dogo_argentino,Dogo Argentino
+dog_hybrid_breed__english_foxhound,English Foxhound
+dog_hybrid_breed__english_setter,English Setter
+dog_hybrid_breed__english_springer_spaniel,English Springer Spaniel
+dog_hybrid_breed__english_toy_spaniel,English Toy Spaniel
+dog_hybrid_breed__entlebucher_mountain_dog,Entlebucher Mountain Dog
+dog_hybrid_breed__field_spaniel,Field Spaniel
+dog_hybrid_breed__finnish_lapphund,Finnish Lapphund
+dog_hybrid_breed__finnish_spitz,Finnish Spitz
+dog_hybrid_breed__flat_coated_retriever,Flat Coated Retriever
+dog_hybrid_breed__fox_terrier_smooth,Fox Terrier – Smooth
+dog_hybrid_breed__fox_terrier_wirehair,Fox Terrier – Wirehair
+dog_hybrid_breed__french_bulldog,French Bulldog
+dog_hybrid_breed__german_pinscher,German Pinscher
+dog_hybrid_breed__german_shepherd_dog,German Shepherd Dog
+dog_hybrid_breed__german_shorthaired_pointer,German Shorthaired Pointer
+dog_hybrid_breed__german_wirehaired_pointer,German Wirehaired Pointer
+dog_hybrid_breed__giant_schnauzer,Giant Schnauzer
+dog_hybrid_breed__glen_imaal_terrier,Glen Imaal Terrier
+dog_hybrid_breed__golden_retriever,Golden Retriever
+dog_hybrid_breed__gordon_setter,Gordon Setter
+dog_hybrid_breed__grand_basset,Grand Basset
+dog_hybrid_breed__great_dane,Great Dane
+dog_hybrid_breed__great_pyrenees,Great Pyrenees
+dog_hybrid_breed__great_swiss_mountain_dog,Great Swiss Mountain Dog
+dog_hybrid_breed__greyhound,Greyhound
+dog_hybrid_breed__griffon_vendeen,Griffon Vendéen
+dog_hybrid_breed__harrier,Harrier
+dog_hybrid_breed__havanese,Havanese
+dog_hybrid_breed__ibizan_hound,Ibizan Hound
+dog_hybrid_breed__irish_setter,Irish Setter
+dog_hybrid_breed__irish_terrier,Irish Terrier
+dog_hybrid_breed__irish_water_spaniel,Irish Water Spaniel
+dog_hybrid_breed__irish_wolfhound,Irish Wolfhound
+dog_hybrid_breed__icelandic_sheepdog,Icelandic Sheepdog
+dog_hybrid_breed__italian_greyhound,Italian Greyhound
+dog_hybrid_breed__japanese_chin,Japanese Chin
+dog_hybrid_breed__keeshond,Keeshond
+dog_hybrid_breed__kerry_blue_terrier,Kerry Blue Terrier
+dog_hybrid_breed__komondor,Komondor
+dog_hybrid_breed__kuvasz,Kuvasz
+dog_hybrid_breed__labrador_retriever,Labrador Retriever
+dog_hybrid_breed__lagotto_romagnolo,Lagotto Romagnolo
+dog_hybrid_breed__lakeland_terrier,Lakeland Terrier
+dog_hybrid_breed__leonberger,Leonberger
+dog_hybrid_breed__lhasa_apso,Lhasa Apso
+dog_hybrid_breed__lowchen,Lowchen (Little Lion Dog)
+dog_hybrid_breed__maltese,Maltese
+dog_hybrid_breed__manchester_terrier,Manchester Terrier( Standard & Toy)
+dog_hybrid_breed__mastiff,Mastiff
+dog_hybrid_breed__miniature_american_shepherd,Miniature American Shepherd
+dog_hybrid_breed__miniature_bull_terrier,Miniature Bull Terrier
+dog_hybrid_breed__miniature_pinscher,Miniature Pinscher
+dog_hybrid_breed__miniature_schnauzer,Miniature Schnauzer
+dog_hybrid_breed__neapolitan_mastiff,Neapolitan Mastiff
+dog_hybrid_breed__newfoundland,Newfoundland
+dog_hybrid_breed__norfolk_terrier,Norfolk Terrier
+dog_hybrid_breed__norrbottenspets,Norrbottenspets
+dog_hybrid_breed__norwegian_elkhound,Norwegian Elkhound
+dog_hybrid_breed__norwegian_lundehund,Norwegian Lundehund
+dog_hybrid_breed__norwich_terrier,Norwich Terrier
+dog_hybrid_breed__nova_scotia_duck_tolling_retriever,Nova Scotia Duck Tolling Retriever
+dog_hybrid_breed__old_english_sheepdog,Old English Sheepdog (Bobtail)
+dog_hybrid_breed__otterhound,Otterhound
+dog_hybrid_breed__papillon,Papillon
+dog_hybrid_breed__parson_russell_terrier,Parson Russell Terrier
+dog_hybrid_breed__pekingese,Pekingese
+dog_hybrid_breed__pembroke_welsh_corgi,Pembroke Welsh Corgi
+dog_hybrid_breed__peruvian_inca_orchid,Peruvian Inca Orchid
+dog_hybrid_breed__petit_basset_griffon_vendeen,Petit Basset Griffon Vendeen
+dog_hybrid_breed__pharaoh_hound,Pharaoh Hound
+dog_hybrid_breed__plott_hound,Plott Hound
+dog_hybrid_breed__pointer,Pointer
+dog_hybrid_breed__polish_lowland_sheepdog,Polish Lowland Sheepdog
+dog_hybrid_breed__pomeranian,Pomeranian
+dog_hybrid_breed__poodle_miniature,Poodle (Miniature)
+dog_hybrid_breed__poodle_standard,Poodle (Standard)
+dog_hybrid_breed__poodle_toy,Poodle (Toy)
+dog_hybrid_breed__portuguese_podengo,Portuguese Podengo
+dog_hybrid_breed__portuguese_podengo_pequeno,Portuguese Podengo Pequeno
+dog_hybrid_breed__portuguese_water_dog,Portuguese Water Dog
+dog_hybrid_breed__pug,Pug
+dog_hybrid_breed__puli,Puli
+dog_hybrid_breed__pumi,Pumi
+dog_hybrid_breed__rat_terrier,Rat Terrier
+dog_hybrid_breed__redbone_coonhound,Redbone Coonhound
+dog_hybrid_breed__rhodesian_ridgeback,Rhodesian Ridgeback
+dog_hybrid_breed__rottweiler,Rottweiler
+dog_hybrid_breed__russell_terrier,Russell Terrier
+dog_hybrid_breed__saint_bernard,Saint Bernard
+dog_hybrid_breed__saluki,Saluki
+dog_hybrid_breed__sloughi,Sloughi
+dog_hybrid_breed__samoyed,Samoyed
+dog_hybrid_breed__schipperke,Schipperke
+dog_hybrid_breed__scottish_deerhound,Scottish Deerhound
+dog_hybrid_breed__scottish_terrier,Scottish Terrier
+dog_hybrid_breed__sealyham_terrier,Sealyham Terrier
+dog_hybrid_breed__shetland_sheepdog,Shetland Sheepdog (Sheltie)
+dog_hybrid_breed__shiba_inu,Shiba Inu
+dog_hybrid_breed__shih_tzu,Shih Tzu
+dog_hybrid_breed__siberian_husky,Siberian Husky
+dog_hybrid_breed__silky_terrier,Silky Terrier
+dog_hybrid_breed__skye_terrier,Skye Terrier
+dog_hybrid_breed__soft_coated_wheaten_terrier,Soft-Coated Wheaten Terrier
+dog_hybrid_breed__spanish_water_dog,Spanish Water Dog
+dog_hybrid_breed__spinone_italiano,Spinone Italiano
+dog_hybrid_breed__staffordshire_bull_terrier,Staffordshire Bull Terrier
+dog_hybrid_breed__standard_schnauzer,Standard Schnauzer
+dog_hybrid_breed__sussex_spaniel,Sussex Spaniel
+dog_hybrid_breed__tibetan_mastiff,Tibetan Mastiff
+dog_hybrid_breed__tibetan_spaniel,Tibetan Spaniel
+dog_hybrid_breed__tibetan_terrier,Tibetan Terrier
+dog_hybrid_breed__toy_fox_terrier,Toy Fox Terrier
+dog_hybrid_breed__treeing_walker_coonhound,Treeing Walker Coonhound
+dog_hybrid_breed__vizsla,Vizsla
+dog_hybrid_breed__weimaraner,Weimaraner
+dog_hybrid_breed__welsh_springer_spaniel,Welsh Springer Spaniel
+dog_hybrid_breed__welsh_terrier,Welsh Terrier
+dog_hybrid_breed__west_highland_white_terrier,West Highland White Terrier
+dog_hybrid_breed__whippet,Whippet
+dog_hybrid_breed__wirehaired_pointing_griffon,Wirehaired Pointing Griffon
+dog_hybrid_breed__wirehaired_vizsla,Wirehaired Vizsla
+dog_hybrid_breed__xoloitzcuintli,Xoloitzcuintli
+dog_hybrid_breed__yorkshire_terrier,Yorkshire Terrier
+dog_personality__friendly_to_familiar_people,Friendly to familiar people
+dog_personality__friendly_to_strangers,Friendly to strangers
+dog_personality__calm,Calm.1
+dog_personality__playful,Playful
+dog_personality__obedient,Obedient
+dog_personality__curious,Curious
+dog_personality__chase_prone,Chase-prone
+dog_personality__vocal,Vocal
+dog_personality__pushy,Pushy
+dog_personality__fearful,Fearful
+dog_personality__stoic_independent,Stoic/Independent
+dog_personality__aggressive_to_familiar_people,Aggressive to familiar people
+dog_personality__aggressive_to_strangers,Aggressive to strangers
+dog_personality__friendly_with_other_dogs,Friendly with other dogs
+dog_personality__aggressive_with_other_dogs,Aggressive with other dogs
+dog_personality__anxious,Anxious
+dog_personality__other,Other.5
+dog_consequences,Did the dog face any consequences as a result of the bite incident?
+dog_consequences__other,Other.6
+has_child_been_bitten_again,Was {{field:6957a284-41a8-43d8-985b-604401786234}} bitten by this dog a second time?
+child_age_at_second_bite,How old was {{field:6957a284-41a8-43d8-985b-604401786234}} at the time of the second bite?
+personality_at_second_bite__shy,Shy.1
+personality_at_second_bite__quiet,Quiet.1
+personality_at_second_bite__calm,Calm.2
+personality_at_second_bite__good_listener,Good Listener.1
+personality_at_second_bite__outgoing,Outgoing.1
+personality_at_second_bite__energetic,Energetic.1
+personality_at_second_bite__difficulty_with_impulse_control,Difficulty with impulse control.1
+personality_at_second_bite__emotional,Emotional.1
+personality_at_second_bite__loud,Loud.1
+personality_at_second_bite__aggressive,Aggressive.1
+personality_at_second_bite__happy,Happy.1
+personality_at_second_bite__other,Other.7
+desc_action_prior_to_second_bite,Which of the following best describes the actions prior to the bite?.1
+dog_behavior_prior_to_second_bite__air_snapped,Air-Snapped.1
+dog_behavior_prior_to_second_bite__bared_teeth_lifted_lips,Bared Teeth/Lifted Lips.1
+dog_behavior_prior_to_second_bite__barked,Barked.1
+dog_behavior_prior_to_second_bite__cowered_away,Cowered Away.1
+dog_behavior_prior_to_second_bite__growled,Growled.1
+dog_behavior_prior_to_second_bite__lunged,Lunged.1
+dog_behavior_prior_to_second_bite__raised_hackles_fur_on_their_back,Raised Hackles (fur on their back).1
+dog_behavior_prior_to_second_bite__tucked_tail,Tucked Tail.1
+dog_behavior_prior_to_second_bite__whale_eye_whites_of_the_dogs_eyes_are_showing_like_a_slide_eye_look,"Whale Eye (whites of the dog's eyes are showing, like a slide-eye look).1"
+dog_behavior_prior_to_second_bite__none,None.1
+dog_behavior_prior_to_second_bite__other,Other.8
+triggered_second_bite__hugged_the_dog,Hugged the dog.1
+triggered_second_bite__pet_the_dog_on_the_head,Pet the dog on the head.1
+triggered_second_bite__pet_the_dog_on_its_legs_or_paws,Pet the dog on its legs or paws.1
+triggered_second_bite__gave_the_dog_a_belly_rub,Gave the dog a belly rub.1
+triggered_second_bite__approached_the_dog_while_it_had_a_toy,Approached the dog while it had a toy.1
+triggered_second_bite__approached_the_dog_while_it_was_eating_or_near_its_food_bowl,Approached the dog while it was eating or near its food bowl.1
+triggered_second_bite__approached_the_dog_while_it_was_chewing_a_bone_rawhide_or_treat,"Approached the dog while it was chewing a bone, rawhide, or treat.1"
+triggered_second_bite__approached_the_dog_while_it_was_on_its_bed_in_its_crate_or_sleeping,"Approached the dog while it was on it's bed, in it's crate, or sleeping.1"
+triggered_second_bite__picked_the_dog_up,Picked the dog up.1
+triggered_second_bite__ran_toward_the_dog,Ran toward the dog.1
+triggered_second_bite__child_was_running_around,Child was running around.1
+triggered_second_bite__stepped_or_fell_on_the_dog,Stepped or fell on the dog.1
+triggered_second_bite__tried_to_stop_the_dog_from_doing_something_restraining_the_dog,Tried to stop the dog from doing something (restraining the dog).1
+triggered_second_bite__put_on_or_take_off_its_collar,Put on or take off its collar.1
+triggered_second_bite__entered_the_dogs_yard,Entered the dog's yard
+triggered_second_bite__no_obvious_trigger,No obvious trigger.1
+triggered_second_bite__other,Other.9
+was_dog_leashed_again,Was the dog leashed or tethered when the bite occurred?.1
+second_bite_location__arms,Arms.1
+second_bite_location__back,Back.1
+second_bite_location__face,Face.1
+second_bite_location__feet,Feet.1
+second_bite_location__hands,Hands.1
+second_bite_location__head,Head.1
+second_bite_location__legs,Legs.1
+second_bite_location__torso,Torso.1
+second_bite_location__other,Other.10
+second_bite_severity,What was the severity of the bite?.1
+second_bite_severity__other,Other.11
+has_child_been_bitten_three_or_more_times_by_this_dog,Was {{field:6957a284-41a8-43d8-985b-604401786234}} bitten 3 or more times by this dog?
+desc_additional_bite_incidents,Describe what happened during the additional bite incidents.
+has_child_been_bitten_by_alt_dog,Was {{field:6957a284-41a8-43d8-985b-604401786234}} ever bitten by another family dog?
+child_age_at_alt_dog_bite,How old was {{field:6957a284-41a8-43d8-985b-604401786234}} at the time of the bite?.1
+personality_at_alt_dog_bite__shy,Shy.2
+personality_at_alt_dog_bite__quiet,Quiet.2
+personality_at_alt_dog_bite__calm,Calm.3
+personality_at_alt_dog_bite__good_listener,Good Listener.2
+personality_at_alt_dog_bite__outgoing,Outgoing.2
+personality_at_alt_dog_bite__energetic,Energetic.2
+personality_at_alt_dog_bite__difficulty_with_impulse_control,Difficulty with impulse control.2
+personality_at_alt_dog_bite__emotional,Emotional.2
+personality_at_alt_dog_bite__loud,Loud.2
+personality_at_alt_dog_bite__aggressive,Aggressive.2
+personality_at_alt_dog_bite__happy,Happy.2
+personality_at_alt_dog_bite__other,Other.12
+desc_action_prior_to_alt_dog_bite,Which of the following best describes the actions prior to the bite?.2
+dog_behavior_prior_to_alt_dog_bite__air_snapped,Air-Snapped.2
+dog_behavior_prior_to_alt_dog_bite__bared_teeth_lifted_lips,Bared Teeth/Lifted Lips.2
+dog_behavior_prior_to_alt_dog_bite__barked,Barked.2
+dog_behavior_prior_to_alt_dog_bite__cowered_away,Cowered Away.2
+dog_behavior_prior_to_alt_dog_bite__growled,Growled.2
+dog_behavior_prior_to_alt_dog_bite__lunged,Lunged.2
+dog_behavior_prior_to_alt_dog_bite__raised_hackles_fur_on_their_back,Raised Hackles (fur on their back).2
+dog_behavior_prior_to_alt_dog_bite__tucked_tail,Tucked Tail.2
+dog_behavior_prior_to_alt_dog_bite__whale_eye_whites_of_the_dogs_eyes_are_showing_like_a_slide_eye_look,"Whale Eye (whites of the dog's eyes are showing, like a slide-eye look).2"
+dog_behavior_prior_to_alt_dog_bite__none,None.2
+dog_behavior_prior_to_alt_dog_bite__other,Other.13
+triggered_alt_dog_bite__hugged_the_dog,Hugged the dog.2
+triggered_alt_dog_bite__pet_the_dog_on_the_head,Pet the dog on the head.2
+triggered_alt_dog_bite__pet_the_dog_on_its_legs_or_paws,Pet the dog on its legs or paws.2
+triggered_alt_dog_bite__gave_the_dog_a_belly_rub,Gave the dog a belly rub.2
+triggered_alt_dog_bite__approached_the_dog_while_it_had_a_toy,Approached the dog while it had a toy.2
+triggered_alt_dog_bite__approached_the_dog_while_it_was_eating_or_near_its_food_bowl,Approached the dog while it was eating or near its food bowl.2
+triggered_alt_dog_bite__approached_the_dog_while_it_was_chewing_a_bone_rawhide_or_treat,"Approached the dog while it was chewing a bone, rawhide, or treat.2"
+triggered_alt_dog_bite__approached_the_dog_while_it_was_on_its_bed_in_its_crate_or_sleeping,"Approached the dog while it was on it's bed, in it's crate, or sleeping.2"
+triggered_alt_dog_bite__picked_the_dog_up,Picked the dog up.2
+triggered_alt_dog_bite__ran_toward_the_dog,Ran toward the dog.2
+triggered_alt_dog_bite__child_was_running_around,Child was running around.2
+triggered_alt_dog_bite__stepped_or_fell_on_the_dog,Stepped or fell on the dog.2
+triggered_alt_dog_bite__tried_to_stop_the_dog_from_doing_something_restraining_the_dog,Tried to stop the dog from doing something (restraining the dog).2
+triggered_alt_dog_bite__put_on_or_take_off_its_collar,Put on or take off its collar.2
+triggered_alt_dog_bite__entered_the_dogs_yard,Entered the dog's yard.1
+triggered_alt_dog_bite__no_obvious_trigger,No obvious trigger.2
+triggered_alt_dog_bite__other,Other.14
+was_alt_dog_leashed,Was the dog leashed or tethered when the bite occurred?.2
+alt_dog_bite_location__arms,Arms.2
+alt_dog_bite_location__back,Back.2
+alt_dog_bite_location__face,Face.2
+alt_dog_bite_location__feet,Feet.2
+alt_dog_bite_location__hands,Hands.2
+alt_dog_bite_location__head,Head.2
+alt_dog_bite_location__legs,Legs.2
+alt_dog_bite_location__torso,Torso.2
+alt_dog_bite_location__other,Other.15
+alt_dog_bite_severity,What was the severity of the bite?.2
+alt_dog_bite_severity__other,Other.16
+alt_dog_gender,What gender was the dog?.1
+alt_dog_age,How old was the dog?.1
+alt_dog_breed_description,What best describes the dog's breed?.1
+alt_dog_breed,What breed?.1
+alt_dog_breed__affenpinscher,Affenpinscher.1
+alt_dog_breed__afghan_hound,Afghan Hound.1
+alt_dog_breed__airedale_terrier,Airedale Terrier.1
+alt_dog_breed__akita,Akita.1
+alt_dog_breed__alaskan_malamute,Alaskan Malamute.1
+alt_dog_breed__american_english_coonhound,American English Coonhound.1
+alt_dog_breed__american_eskimo,American Eskimo.1
+alt_dog_breed__american_foxhound,American Foxhound.1
+alt_dog_breed__american_hairless_terrier,American Hairless Terrier.1
+alt_dog_breed__american_staffordshire_terrier,American Staffordshire Terrier.1
+alt_dog_breed__american_water_spaniel,American Water Spaniel.1
+alt_dog_breed__anatolian_sheepdog,Anatolian Sheepdog.1
+alt_dog_breed__australian_cattle_dog,Australian Cattle Dog.1
+alt_dog_breed__australian_shepherd,Australian Shepherd.1
+alt_dog_breed__australian_terrier,Australian Terrier.1
+alt_dog_breed__basenji,Basenji.1
+alt_dog_breed__basset_hound,Basset Hound.1
+alt_dog_breed__beagle,Beagle.1
+alt_dog_breed__bearded_collie,Bearded Collie.1
+alt_dog_breed__beauceron,Beauceron.1
+alt_dog_breed__bedlington_terrier,Bedlington Terrier.1
+alt_dog_breed__belgian_laekenois,Belgian Laekenois.1
+alt_dog_breed__belgian_malinois,Belgian Malinois.1
+alt_dog_breed__belgian_sheepdog,Belgian Sheepdog.1
+alt_dog_breed__belgian_tervuren,Belgian Tervuren.1
+alt_dog_breed__bergamasco,Bergamasco.1
+alt_dog_breed__berger_picard,Berger Picard.1
+alt_dog_breed__bernese_mountain_dog,Bernese Mountain Dog.1
+alt_dog_breed__bichon_frise,Bichon Frise.1
+alt_dog_breed__black_and_tan_coonhound,Black And Tan Coonhound.1
+alt_dog_breed__black_russian_terrier,Black Russian Terrier.1
+alt_dog_breed__bluetick_coonhound,Bluetick Coonhound.1
+alt_dog_breed__bloodhound,Bloodhound.1
+alt_dog_breed__boerboel,Boerboel.1
+alt_dog_breed__border_collie,Border Collie.1
+alt_dog_breed__border_terrier,Border Terrier.1
+alt_dog_breed__borzoi,Borzoi.1
+alt_dog_breed__boston_terrier,Boston Terrier.1
+alt_dog_breed__bouvier_des_flandres,Bouvier Des Flandres.1
+alt_dog_breed__boykin_spaniel,Boykin Spaniel.1
+alt_dog_breed__boxer,Boxer.1
+alt_dog_breed__briard,Briard.1
+alt_dog_breed__brittany,Brittany.1
+alt_dog_breed__brussels_griffon,Brussels Griffon.1
+alt_dog_breed__bull_dog,Bull Dog.1
+alt_dog_breed__bull_terrier,Bull Terrier.1
+alt_dog_breed__bullmastiff,Bullmastiff.1
+alt_dog_breed__cairn_terrier,Cairn Terrier.1
+alt_dog_breed__canaan_dog,Canaan Dog.1
+alt_dog_breed__cane_corso,Cane corso.1
+alt_dog_breed__cardigan_welsh_corgi,Cardigan Welsh Corgi.1
+alt_dog_breed__cavalier_king_charles_spaniel,Cavalier King Charles Spaniel.1
+alt_dog_breed__cesky_terrier,Cesky Terrier.1
+alt_dog_breed__chesapeake_bay_retriever,Chesapeake Bay Retriever.1
+alt_dog_breed__chihuahua,Chihuahua.1
+alt_dog_breed__chinese_crested,Chinese Crested.1
+alt_dog_breed__chinese_shar_pei,Chinese Shar Pei.1
+alt_dog_breed__chinook,Chinook.1
+alt_dog_breed__chow_chow,Chow Chow.1
+alt_dog_breed__cirneco_delletna,Cirneco dell'Etna.1
+alt_dog_breed__clumber_spaniel,Clumber Spaniel.1
+alt_dog_breed__cocker_spaniel_american,Cocker Spaniel-American.1
+alt_dog_breed__cocker_spaniel_english,Cocker Spaniel-English.1
+alt_dog_breed__collie_rough_and_smooth,Collie (Rough) & (Smooth).1
+alt_dog_breed__coton_de_tulear,Coton de Tulear.1
+alt_dog_breed__curly_coated_retriever,Curly Coated Retriever.1
+alt_dog_breed__dachshund,Dachshund.1
+alt_dog_breed__dalmatian,Dalmatian.1
+alt_dog_breed__dandie_dinmont_terrier,Dandie Dinmont Terrier.1
+alt_dog_breed__doberman_pinscher,Doberman Pinscher.1
+alt_dog_breed__dogo_argentino,Dogo Argentino.1
+alt_dog_breed__english_foxhound,English Foxhound.1
+alt_dog_breed__english_setter,English Setter.1
+alt_dog_breed__english_springer_spaniel,English Springer Spaniel.1
+alt_dog_breed__english_toy_spaniel,English Toy Spaniel.1
+alt_dog_breed__entlebucher_mountain_dog,Entlebucher Mountain Dog.1
+alt_dog_breed__field_spaniel,Field Spaniel.1
+alt_dog_breed__finnish_lapphund,Finnish Lapphund.1
+alt_dog_breed__finnish_spitz,Finnish Spitz.1
+alt_dog_breed__flat_coated_retriever,Flat Coated Retriever.1
+alt_dog_breed__fox_terrier_smooth,Fox Terrier – Smooth.1
+alt_dog_breed__fox_terrier_wirehair,Fox Terrier – Wirehair.1
+alt_dog_breed__french_bulldog,French Bulldog.1
+alt_dog_breed__german_pinscher,German Pinscher.1
+alt_dog_breed__german_shepherd_dog,German Shepherd Dog.1
+alt_dog_breed__german_shorthaired_pointer,German Shorthaired Pointer.1
+alt_dog_breed__german_wirehaired_pointer,German Wirehaired Pointer.1
+alt_dog_breed__giant_schnauzer,Giant Schnauzer.1
+alt_dog_breed__glen_imaal_terrier,Glen Imaal Terrier.1
+alt_dog_breed__golden_retriever,Golden Retriever.1
+alt_dog_breed__gordon_setter,Gordon Setter.1
+alt_dog_breed__grand_basset,Grand Basset.1
+alt_dog_breed__great_dane,Great Dane.1
+alt_dog_breed__great_pyrenees,Great Pyrenees.1
+alt_dog_breed__great_swiss_mountain_dog,Great Swiss Mountain Dog.1
+alt_dog_breed__greyhound,Greyhound.1
+alt_dog_breed__griffon_vendeen,Griffon Vendéen.1
+alt_dog_breed__harrier,Harrier.1
+alt_dog_breed__havanese,Havanese.1
+alt_dog_breed__ibizan_hound,Ibizan Hound.1
+alt_dog_breed__irish_setter,Irish Setter.1
+alt_dog_breed__irish_terrier,Irish Terrier.1
+alt_dog_breed__irish_water_spaniel,Irish Water Spaniel.1
+alt_dog_breed__irish_wolfhound,Irish Wolfhound.1
+alt_dog_breed__icelandic_sheepdog,Icelandic Sheepdog.1
+alt_dog_breed__italian_greyhound,Italian Greyhound.1
+alt_dog_breed__japanese_chin,Japanese Chin.1
+alt_dog_breed__keeshond,Keeshond.1
+alt_dog_breed__kerry_blue_terrier,Kerry Blue Terrier.1
+alt_dog_breed__komondor,Komondor.1
+alt_dog_breed__kuvasz,Kuvasz.1
+alt_dog_breed__labrador_retriever,Labrador Retriever.1
+alt_dog_breed__lagotto_romagnolo,Lagotto Romagnolo.1
+alt_dog_breed__lakeland_terrier,Lakeland Terrier.1
+alt_dog_breed__leonberger,Leonberger.1
+alt_dog_breed__lhasa_apso,Lhasa Apso.1
+alt_dog_breed__lowchen_little_lion_dog,Lowchen (Little Lion Dog).1
+alt_dog_breed__maltese,Maltese.1
+alt_dog_breed__manchester_terrier_standard_and_toy,Manchester Terrier( Standard & Toy).1
+alt_dog_breed__mastiff,Mastiff.1
+alt_dog_breed__miniature_american_shepherd,Miniature American Shepherd.1
+alt_dog_breed__miniature_bull_terrier,Miniature Bull Terrier.1
+alt_dog_breed__miniature_pinscher,Miniature Pinscher.1
+alt_dog_breed__miniature_schnauzer,Miniature Schnauzer.1
+alt_dog_breed__neapolitan_mastiff,Neapolitan Mastiff.1
+alt_dog_breed__newfoundland,Newfoundland.1
+alt_dog_breed__norfolk_terrier,Norfolk Terrier.1
+alt_dog_breed__norrbottenspets,Norrbottenspets.1
+alt_dog_breed__norwegian_elkhound,Norwegian Elkhound.1
+alt_dog_breed__norwegian_lundehund,Norwegian Lundehund.1
+alt_dog_breed__norwich_terrier,Norwich Terrier.1
+alt_dog_breed__nova_scotia_duck_tolling_retriever,Nova Scotia Duck Tolling Retriever.1
+alt_dog_breed__old_english_sheepdog_bobtail,Old English Sheepdog (Bobtail).1
+alt_dog_breed__otterhound,Otterhound.1
+alt_dog_breed__papillon,Papillon.1
+alt_dog_breed__parson_russell_terrier,Parson Russell Terrier.1
+alt_dog_breed__pekingese,Pekingese.1
+alt_dog_breed__pembroke_welsh_corgi,Pembroke Welsh Corgi.1
+alt_dog_breed__peruvian_inca_orchid,Peruvian Inca Orchid.1
+alt_dog_breed__petit_basset_griffon_vendeen,Petit Basset Griffon Vendeen.1
+alt_dog_breed__pharaoh_hound,Pharaoh Hound.1
+alt_dog_breed__plott_hound,Plott Hound.1
+alt_dog_breed__pointer,Pointer.1
+alt_dog_breed__polish_lowland_sheepdog,Polish Lowland Sheepdog.1
+alt_dog_breed__pomeranian,Pomeranian.1
+alt_dog_breed__poodle_miniature,Poodle (Miniature).1
+alt_dog_breed__poodle_standard,Poodle (Standard).1
+alt_dog_breed__poodle_toy,Poodle (Toy).1
+alt_dog_breed__portuguese_podengo,Portuguese Podengo.1
+alt_dog_breed__portuguese_podengo_pequeno,Portuguese Podengo Pequeno.1
+alt_dog_breed__portuguese_water_dog,Portuguese Water Dog.1
+alt_dog_breed__pug,Pug.1
+alt_dog_breed__puli,Puli.1
+alt_dog_breed__pumi,Pumi.1
+alt_dog_breed__rat_terrier,Rat Terrier.1
+alt_dog_breed__redbone_coonhound,Redbone Coonhound.1
+alt_dog_breed__rhodesian_ridgeback,Rhodesian Ridgeback.1
+alt_dog_breed__rottweiler,Rottweiler.1
+alt_dog_breed__russell_terrier,Russell Terrier.1
+alt_dog_breed__saint_bernard,Saint Bernard.1
+alt_dog_breed__saluki,Saluki.1
+alt_dog_breed__sloughi,Sloughi.1
+alt_dog_breed__samoyed,Samoyed.1
+alt_dog_breed__schipperke,Schipperke.1
+alt_dog_breed__scottish_deerhound,Scottish Deerhound.1
+alt_dog_breed__scottish_terrier,Scottish Terrier.1
+alt_dog_breed__sealyham_terrier,Sealyham Terrier.1
+alt_dog_breed__shetland_sheepdog_sheltie,Shetland Sheepdog (Sheltie).1
+alt_dog_breed__shiba_inu,Shiba Inu.1
+alt_dog_breed__shih_tzu,Shih Tzu.1
+alt_dog_breed__siberian_husky,Siberian Husky.1
+alt_dog_breed__silky_terrier,Silky Terrier.1
+alt_dog_breed__skye_terrier,Skye Terrier.1
+alt_dog_breed__soft_coated_wheaten_terrier,Soft-Coated Wheaten Terrier.1
+alt_dog_breed__spanish_water_dog,Spanish Water Dog.1
+alt_dog_breed__spinone_italiano,Spinone Italiano.1
+alt_dog_breed__staffordshire_bull_terrier,Staffordshire Bull Terrier.1
+alt_dog_breed__standard_schnauzer,Standard Schnauzer.1
+alt_dog_breed__sussex_spaniel,Sussex Spaniel.1
+alt_dog_breed__tibetan_mastiff,Tibetan Mastiff.1
+alt_dog_breed__tibetan_spaniel,Tibetan Spaniel.1
+alt_dog_breed__tibetan_terrier,Tibetan Terrier.1
+alt_dog_breed__toy_fox_terrier,Toy Fox Terrier.1
+alt_dog_breed__treeing_walker_coonhound,Treeing Walker Coonhound.1
+alt_dog_breed__vizsla,Vizsla.1
+alt_dog_breed__weimaraner,Weimaraner.1
+alt_dog_breed__welsh_springer_spaniel,Welsh Springer Spaniel.1
+alt_dog_breed__welsh_terrier,Welsh Terrier.1
+alt_dog_breed__west_highland_white_terrier,West Highland White Terrier.1
+alt_dog_breed__whippet,Whippet.1
+alt_dog_breed__wirehaired_pointing_griffon,Wirehaired Pointing Griffon.1
+alt_dog_breed__wirehaired_vizsla,Wirehaired Vizsla.1
+alt_dog_breed__xoloitzcuintli,Xoloitzcuintli.1
+alt_dog_breed__yorkshire_terrier,Yorkshire Terrier.1
+alt_dog_personality__friendly_to_familiar_people,Friendly to familiar people.1
+alt_dog_personality__friendly_to_strangers,Friendly to strangers.1
+alt_dog_personality__calm,Calm.4
+alt_dog_personality__playful,Playful.1
+alt_dog_personality__obedient,Obedient.1
+alt_dog_personality__curious,Curious.1
+alt_dog_personality__chase_prone,Chase-prone.1
+alt_dog_personality__vocal,Vocal.1
+alt_dog_personality__pushy,Pushy.1
+alt_dog_personality__fearful,Fearful.1
+alt_dog_personality__stoic_independent,Stoic/independent
+alt_dog_personality__aggressive_to_familiar_people,Aggressive to familiar people.1
+alt_dog_personality__aggressive_to_strangers,Aggressive to strangers.1
+alt_dog_personality__friendly_with_other_dogs,Friendly with other dogs.1
+alt_dog_personality__aggressive_with_other_dogs,Aggressive with other dogs.1
+alt_dog_personality__anxious,Anxious.1
+alt_dog_personality__other,Other.17
+alt_dog_consequences,Did the dog face any consequences as a result of the bite incident?.1
+alt_dog_consequences__other,Other.18
+has_child_been_bitten_by_alt_dog_again,Was {{field:6957a284-41a8-43d8-985b-604401786234}} bitten by this dog a second time?.1
+child_age_at_second_alt_dog_bite,How old was {{field:6957a284-41a8-43d8-985b-604401786234}} at the time of the bite?.2
+personality_at_second_alt_dog_bite__shy,Shy.3
+personality_at_second_alt_dog_bite__quiet,Quiet.3
+personality_at_second_alt_dog_bite__calm,Calm.5
+personality_at_second_alt_dog_bite__good_listener,Good Listener.3
+personality_at_second_alt_dog_bite__outgoing,Outgoing.3
+personality_at_second_alt_dog_bite__energetic,Energetic.3
+personality_at_second_alt_dog_bite__difficulty_with_impulse_control,Difficulty with impulse control.3
+personality_at_second_alt_dog_bite__emotional,Emotional.3
+personality_at_second_alt_dog_bite__loud,Loud.3
+personality_at_second_alt_dog_bite__aggressive,Aggressive.3
+personality_at_second_alt_dog_bite__happy,Happy.3
+personality_at_second_alt_dog_bite__other,Other.19
+desc_action_prior_to_second_alt_dog_bite,Which of the following best describes the actions prior to the bite?.3
+dog_behavior_prior_to_second_alt_dog_bite__air_snapped,Air-Snapped.3
+dog_behavior_prior_to_second_alt_dog_bite__bared_teeth_lifted_lips,Bared Teeth/Lifted Lips.3
+dog_behavior_prior_to_second_alt_dog_bite__barked,Barked.3
+dog_behavior_prior_to_second_alt_dog_bite__cowered_away,Cowered Away.3
+dog_behavior_prior_to_second_alt_dog_bite__growled,Growled.3
+dog_behavior_prior_to_second_alt_dog_bite__lunged,Lunged.3
+dog_behavior_prior_to_second_alt_dog_bite__raised_hackles_fur_on_their_back,Raised Hackles (fur on their back).3
+dog_behavior_prior_to_second_alt_dog_bite__tucked_tail,Tucked Tail.3
+dog_behavior_prior_to_second_alt_dog_bite__whale_eye_whites_of_the_dogs_eyes_are_showing_like_a_slide_eye_look,"Whale Eye (whites of the dog's eyes are showing, like a slide-eye look).3"
+dog_behavior_prior_to_second_alt_dog_bite__none,None.3
+dog_behavior_prior_to_second_alt_dog_bite__other,Other.20
+triggered_second_alt_dog_bite__hugged_the_dog,Hugged the dog.3
+triggered_second_alt_dog_bite__pet_the_dog_on_the_head,Pet the dog on the head.3
+triggered_second_alt_dog_bite__pet_the_dog_on_its_legs_or_paws,Pet the dog on its legs or paws.3
+triggered_second_alt_dog_bite__gave_the_dog_a_belly_rub,Gave the dog a belly rub.3
+triggered_second_alt_dog_bite__approached_the_dog_while_it_had_a_toy,Approached the dog while it had a toy.3
+triggered_second_alt_dog_bite__approached_the_dog_while_it_was_eating_or_near_its_food_bowl,Approached the dog while it was eating or near its food bowl.3
+triggered_second_alt_dog_bite__approached_the_dog_while_it_was_chewing_a_bone_rawhide_or_treat,"Approached the dog while it was chewing a bone, rawhide, or treat.3"
+triggered_second_alt_dog_bite__approached_the_dog_while_it_was_on_its_bed_in_its_crate_or_sleeping,"Approached the dog while it was on it's bed, in it's crate, or sleeping.3"
+triggered_second_alt_dog_bite__picked_the_dog_up,Picked the dog up.3
+triggered_second_alt_dog_bite__ran_toward_the_dog,Ran toward the dog.3
+triggered_second_alt_dog_bite__child_was_running_around,Child was running around.3
+triggered_second_alt_dog_bite__stepped_or_fell_on_the_dog,Stepped or fell on the dog.3
+triggered_second_alt_dog_bite__tried_to_stop_the_dog_from_doing_something_restraining_the_dog,Tried to stop the dog from doing something (restraining the dog).3
+triggered_second_alt_dog_bite__put_on_or_take_off_its_collar,Put on or take off its collar.3
+triggered_second_alt_dog_bite__entered_the_dogs_yard,Entered the dog's yard.2
+triggered_second_alt_dog_bite__no_obvious_trigger,No obvious trigger.3
+triggered_second_alt_dog_bite__other,Other.21
+was_alt_dog_leashed_at_second_bite,Was the dog leashed or tethered at the time of the bite?
+second_alt_dog_bite_location__arms,Arms.3
+second_alt_dog_bite_location__back,Back.3
+second_alt_dog_bite_location__face,Face.3
+second_alt_dog_bite_location__feet,Feet.3
+second_alt_dog_bite_location__hands,Hands.3
+second_alt_dog_bite_location__head,Head.3
+second_alt_dog_bite_location__legs,Legs.3
+second_alt_dog_bite_location__torso,Torso.3
+second_alt_dog_bite_location__other,Other.22
+second_alt_dog_bite_severity,What was the severity of the bite?.3
+second_alt_dog_bite_severity__other,Other.23
+has_child_been_bitten_three_or_more_times_by_this_alt_dog,Was {{field:6957a284-41a8-43d8-985b-604401786234}} bitten 3 or more times by this dog?.1
+desc_additional_bite_incidents_for_alt_dog,Describe what happened during the additional bite incidents..1
+did_child_comfort_level_change_after_bite,Did {{field:6957a284-41a8-43d8-985b-604401786234}}'s comfort level change around dogs after they were bitten?
+did_child_comfort_level_change_after_bite__other,Other.24
+has_child_been_bitten_by_nonfamily_dog,Have any of your children ever bitten by a dog that did not belong to you?
+has_your_dog_bitten_someone_elses_child,Have any of your dog's bitten someone else's child?
+anything_else_to_share,Anything else you'd like to share?
+owner_id,What is your email?
+location,Where do you live?
+response_type,Response Type
+start_date_utc,Start Date (UTC)
+stage_date_utc,Stage Date (UTC)
+submit_date_utc,Submit Date (UTC)
+network_id,Network ID
+tags,Tags
+ending,Ending
