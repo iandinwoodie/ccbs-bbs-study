@@ -30,8 +30,7 @@ df <- readr::read_csv('../data/dogs-and-children-survey.csv')
 stopifnot(identical(dim(df)+0, c(192, 676)))
 ```
 
-We update the data frame column names to be more friendly to work with during
-analysis.
+We update the data frame column names to be more friendly to work with during analysis.
 
 ```{r}
 # Apply analysis friendly column names.
@@ -54,6 +53,72 @@ df <- df %>%
 # Assert size after dropping columns.
 stopifnot(identical(dim(df)+0, c(192, 669)))
 ```
+
+# Additional tidying + demographic summaries
+
+Compute basic demographic summaries for EDA and to verify data structure. 
+
+```{r}
+# create a household identifier
+# prefer network_id; fall back to owner_id
+df <- df %>% 
+  mutate(household_id = dplyr::coalesce(network_id, owner_id) %>% 
+           stringr::str_to_lower() %>%
+           stringr::str_trim())
+
+# total number of responses
+nrow(df)
+
+# number of submissions per household
+responses_per_household <- df %>%
+  count(household_id, name = "n_submissions")
+
+summary(responses_per_household$n_submissions)
+
+# number of households with multiple submissions
+responses_per_household %>%
+  summarise(n_multi_submit = sum(n_submissions > 1))
+
+# number of responses reporting at least one bite
+df %>% 
+  summarise(n_child_bite = sum(suppressWarnings(
+    as.numeric(has_child_been_bitten)) > 0, na.rm = TRUE))
+```
+
+# Standardize Variables
+
+Standardize household- and child-level demographic fields to consistent units.
+
+```{r}
+# Standardize child_cnt to numeric
+# preserve raw data
+df <- df %>% 
+  mutate(child_cnt_raw = as.character(child_cnt)) %>% 
+  mutate(child_cnt = case_when(
+    str_to_lower(str_trim(child_cnt_raw)) %in% c("one") ~ 1,
+    str_to_lower(str_trim(child_cnt_raw)) %in% c("two") ~ 2,
+    str_to_lower(str_trim(child_cnt_raw)) %in% c("three") ~ 3,
+    str_to_lower(str_trim(child_cnt_raw)) %in% c("four") ~ 4,
+    str_to_lower(str_trim(child_cnt_raw)) %in% c("five") ~ 5, 
+    TRUE ~suppressWarnings(as.numeric(child_cnt_raw))))
+
+# Child_cnt checkpoint
+
+# missing values
+df %>% summarise(child_cnt_NA = sum(is.na(child_cnt)))
+#distribution
+df %>% count(child_cnt, sort = TRUE)
+# summary statistics
+summary(df$child_cnt)
+
+# show failed to parse rows 
+df %>% 
+  filter(!is.na(child_cnt_raw), 
+         str_trim(child_cnt_raw) != "", 
+         is.na(child_cnt)) %>%
+  select(child_cnt_raw) %>% 
+  distinct()
+```                     
 
 # Save the Tidy Data    
     
