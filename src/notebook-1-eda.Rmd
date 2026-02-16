@@ -27,7 +27,7 @@ tidy_data_filepath <- '../data/tidy.Rds'
 stopifnot(file.exists(tidy_data_filepath))
 
 df <- readRDS(tidy_data_filepath)
-stopifnot(identical(dim(df)+0, c(192, 669)))
+stopifnot(nrow(df) == 192) # accurate number or responders 
 print(df, n=6)
 ```
 
@@ -48,3 +48,59 @@ length(unique(df$owner_id))
 utils::sessionInfo()
 ```
 
+# Alias for df
+
+```{r}
+df_0 <- df # tidy output
+df_eda <- df_0 # working copy of df for mutation
+```
+
+# Inspect number of children bitten
+
+```{r}
+df_0 %>% count(has_child_been_bitten, sort = TRUE) %>% 
+  print(n = 50)
+```
+# Check NA sumb
+
+```{r} 
+df %>% summarise(NA_child_bitten = sum(is.na(has_child_been_bitten)),
+                 blank_child_bitten = sum(has_child_been_bitten == "", na.rm = TRUE))
+
+df %>%
+  filter(is.na(has_child_been_bitten))
+```
+
+# Single-household duplicate
+
+```{r}
+df_0 %>% count(household_id, name = "n_submissions") %>% 
+  summarise(n_households = n(),
+            n_multisub_households = sum(n_submissions > 1, na.rm = TRUE),
+            max_submit = max(n_submissions, na.rm = TRUE))
+
+df_0 %>% 
+  filter(household_id %in% (df_0 %>% 
+                              count(household_id) %>% 
+                              filter(n > 1) %>% 
+                              pull(household_id))) %>% 
+  arrange(household_id)
+```
+# Find household_id for duplicate submission
+
+```{r}
+df_0 %>% 
+  filter(is.na(has_child_been_bitten),
+         child_id == "Danny") %>% 
+  select(owner_id, household_id, child_id, has_child_been_bitten, has_child_been_bitten_again)
+
+df %>% 
+  filter(household_id == "1926f89bc8")
+View(df)
+```
+
+# Session Info
+
+```{r}
+utils::sessionInfo()
+```

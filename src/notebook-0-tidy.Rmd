@@ -135,3 +135,65 @@ saveRDS(df, '../data/tidy.Rds')
 utils::sessionInfo()
 ```
 
+# Bite flag 
+
+```{r}
+incident_cols <- c("child_id",
+                   "child_age_at_bite",
+                   "desc_action_prior_to_bite")
+
+df_eda <- df %>% 
+  mutate(incident_present = 
+           !is.na(child_id) |
+           !is.na(child_age_at_bite) |
+           !is.na(desc_action_prior_to_bite) |
+           if_any(starts_with("bite_location"), ~ .x == 1))
+
+df_eda <- df_eda %>% 
+  mutate(bite_flag = case_when(
+    has_child_been_bitten == 1 ~ TRUE,
+    incident_present ~ TRUE,
+    has_child_been_bitten == 0 ~ FALSE, TRUE ~ NA))
+```
+
+# sanity check
+
+```{r}
+df_eda %>% 
+  filter(household_id == "1926f89bc8") %>% 
+  select(has_child_been_bitten, child_id, incident_present, bite_flag)
+
+# how many bites
+df_eda %>% count(bite_flag, sort = TRUE)
+
+# view NA
+df_eda %>% 
+  filter(is.na(bite_flag)) %>% 
+  select(household_id,
+         has_child_been_bitten,
+         incident_present,
+         bite_flag)
+
+# merge FALSE and NA for bite_flag
+df_eda <- df %>% mutate(
+  incident_present = 
+    !is.na(child_id) |
+    !is.na(child_age_at_bite) |
+    !is.na(desc_action_prior_to_bite) |
+    if_any(starts_with("bite_location"), ~ .x == 1),
+  bite_flag = case_when(has_child_been_bitten == 1 ~ TRUE,
+                        incident_present ~ TRUE, 
+                        has_child_been_bitten == 0 ~ FALSE, 
+                        TRUE ~ NA),
+  bite_flag_correct = coalesce(bite_flag, FALSE))
+  
+  df_eda %>% count(bite_flag_correct)
+  
+df_eda %>% count(bite_flag, sort = TRUE)
+df_eda %>% count(bite_flag_correct, sort = TRUE)
+df_eda %>% count(has_child_been_bitten, bite_flag_correct)
+```
+
+```{r}
+utils::sessionInfo()
+```
