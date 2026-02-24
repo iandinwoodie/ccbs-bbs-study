@@ -138,62 +138,162 @@ utils::sessionInfo()
 # Bite flag 
 
 ```{r}
-incident_cols <- c("child_id",
-                   "child_age_at_bite",
-                   "desc_action_prior_to_bite")
-
-df_eda <- df %>% 
-  mutate(incident_present = 
-           !is.na(child_id) |
-           !is.na(child_age_at_bite) |
-           !is.na(desc_action_prior_to_bite) |
-           if_any(starts_with("bite_location"), ~ .x == 1))
-
-df_eda <- df_eda %>% 
-  mutate(bite_flag = case_when(
-    has_child_been_bitten == 1 ~ TRUE,
-    incident_present ~ TRUE,
-    has_child_been_bitten == 0 ~ FALSE, TRUE ~ NA))
-```
-
-# sanity check
-
-```{r}
-df_eda %>% 
-  filter(household_id == "1926f89bc8") %>% 
-  select(has_child_been_bitten, child_id, incident_present, bite_flag)
-
-# how many bites
-df_eda %>% count(bite_flag, sort = TRUE)
-
-# view NA
-df_eda %>% 
-  filter(is.na(bite_flag)) %>% 
-  select(household_id,
-         has_child_been_bitten,
-         incident_present,
-         bite_flag)
-
-# merge FALSE and NA for bite_flag
-df_eda <- df %>% mutate(
+df <- df %>% mutate(
   incident_present = 
     !is.na(child_id) |
     !is.na(child_age_at_bite) |
     !is.na(desc_action_prior_to_bite) |
-    if_any(starts_with("bite_location"), ~ .x == 1),
+    if_any(starts_with("bite_location"), ~ suppressWarnings(as.numeric(.x)) == 1),
   bite_flag = case_when(has_child_been_bitten == 1 ~ TRUE,
                         incident_present ~ TRUE, 
                         has_child_been_bitten == 0 ~ FALSE, 
                         TRUE ~ NA),
   bite_flag_correct = coalesce(bite_flag, FALSE))
   
-  df_eda %>% count(bite_flag_correct)
+# sanity checks
+
+df %>% 
+  filter(household_id == "1926f89bc8") %>% 
+  select(has_child_been_bitten, child_id, incident_present, bite_flag)
+
+# how many bites
+df %>% count(bite_flag, sort = TRUE)
+
+# view NA
+df %>% 
+  filter(is.na(bite_flag)) %>% 
+  select(household_id,
+         has_child_been_bitten,
+         incident_present,
+         bite_flag)
   
-df_eda %>% count(bite_flag, sort = TRUE)
-df_eda %>% count(bite_flag_correct, sort = TRUE)
-df_eda %>% count(has_child_been_bitten, bite_flag_correct)
+df %>% count(bite_flag_correct, sort = TRUE)
+df %>% count(has_child_been_bitten, bite_flag_correct)
 ```
 
 ```{r}
 utils::sessionInfo()
 ```
+
+## Variable Standardization: age, gender, multi-selection indicators (behavior)
+
+# Standardize age into months 
+```{r}
+df %>%  count(child_age_at_bite, sort = TRUE) %>% 
+  print(n = 50)
+
+names(df)
+"child_age_at_bite" %in% names(df)
+
+str(df$child_age_at_bite)
+
+# see all raw ages
+df %>% count(child_age_at_bite, sort = TRUE) %>% 
+  print(n = 100)
+
+df <- df %>% mutate(age_raw = str_to_lower(str_trim(child_age_at_bite)),
+                            age_num = readr::parse_number(age_raw),
+                            child_age_months = case_when(
+                              is.na(age_raw) | age_raw == "" ~ NA_real_,
+                              str_detect(age_raw, "month|mo\\b") ~ age_num,
+                              str_detect(age_raw, "year|yr\\b|yo\\b") ~ age_num * 12,
+                              str_detect(age_raw, "^around\\s*[0-9]") ~ age_num * 12,
+                              str_detect(age_raw, "^[0-9]+\\.[0-9]+$") ~ age_num * 12,
+                              str_detect(age_raw, "^[0-9]+$") ~ age_num * 12,
+                              TRUE ~ NA_real_))
+# check child age as months
+df %>%
+  count(child_age_at_bite, child_age_months, sort = TRUE)
+
+# add child age in years
+df <- df %>%  mutate(child_age_years = if_else(
+  is.na(child_age_months),
+  NA_real_, child_age_months / 12))
+
+# check columns
+class(df$child_age_months) 
+class(df$child_age_years)
+
+# summary
+df %>% select(child_age_months, child_age_years) %>% summary()
+
+# drop helper columns 
+df <- df %>% select(-age_raw, -age_num)
+```
+
+# Standardize child gender
+```{r}
+df <- df %>% mutate(child_sex_raw = str_to_lower(str_squish(child_sex)),
+                            child_gender_std = case_when(is.na(child_sex_raw) | child_sex_raw == "" ~ NA_character_,
+                                                               child_sex_raw %in% c("female", "f", "girl", "woman") ~ "Female",
+                                                               child_sex_raw %in% c("male", "boy", "man") ~ "Male",
+                                                               str_detect(child_sex_raw, "non[- ]?binary|nb\\b|genderqueer|trans|other") ~ "Other/Nonbinary",
+                                                               str_detect(child_sex_raw, "prefer not|prefer not to say|decline") ~ "Prefer not to say",
+                                                               TRUE ~ "Needs review"))
+# check
+df %>% count(child_gender_std, sort = TRUE)
+# verify Needs review
+df %>% filter(child_gender_std == "Needs review") %>% 
+  count(child_sex_raw, sort = TRUE)
+
+#remove helper columns
+df <- df %>%  select(-child_sex_raw)
+```
+
+# confirm "child_age_months" -> numeric and "child_gender_std" -> character
+```{r}
+class(df$child_age_months) # numeric
+class(df$child_gender_std)
+
+``` 
+# Standardize dog gender
+```{r}
+# inspect raw values 
+df %>% count(dog_sex, sort = TRUE)
+
+# create variable for sterilization
+df <- df %>% mutate(dog_sex_raw = str_to_lower(str_squish(dog_sex)),
+                    dog_sex_std = case_when(is.na(dog_sex_raw) | dog_sex_raw == "" ~ NA_character_,
+                                            str_detect(dog_sex_raw, "\\bfemale\\b") ~ "Female",
+                                            str_detect(dog_sex_raw, "\\bmale\\b") ~ "Male",
+                                            TRUE ~ "Needs review"),
+                    dog_neuter = case_when(is.na(dog_sex_raw) | dog_sex_raw == "" ~ NA,
+                                           str_detect(dog_sex_raw, "spayed|neutered") ~ TRUE,
+                                           dog_sex_raw %in% c("male", "female") ~ FALSE, 
+                                           TRUE ~ NA))
+                                           
+# check
+df %>%  count(dog_sex, dog_sex_std, dog_neuter, sort = TRUE)
+class(df$dog_neuter) # logical
+```
+
+# Dog age standardization
+```{r}
+# inspect raw values
+df %>% count(dog_age_at_bite, sort = TRUE)
+
+df <- df %>% mutate(dog_age_raw = str_to_lower(str_squish(dog_age_at_bite)),
+                    dog_age_raw = str_replace_all(dog_age_raw, "[^0-9\\.a-z\\s]", ""),
+                    dog_age_num = readr::parse_number(dog_age_raw),
+                    dog_age_months = case_when(is.na(dog_age_raw) | dog_age_raw == "" ~ NA_real_,
+                                              str_detect(dog_age_raw, "month|mo\\b") ~ dog_age_num, # months
+                                              str_detect(dog_age_raw, "year|yr\\b|yo\\b") ~ dog_age_num * 12, # years
+                                              str_detect(dog_age_raw, "^[0-9]+(\\.[0-9]+)?$") ~ dog_age_num * 12,
+                                              TRUE ~ NA_real_))
+# check dog age in months
+df %>%
+  count(dog_age_at_bite, dog_age_months, sort = TRUE)
+
+# create dog age in years
+df <- df %>% mutate(dog_age_years = if_else(is.na(dog_age_months), NA_real_, dog_age_months / 12))
+
+# check equivalence
+df %>% select(dog_age_months, dog_age_years) %>% summary()
+```
+
+# end session
+
+```{r}
+utils::sessionInfo()
+```
+
