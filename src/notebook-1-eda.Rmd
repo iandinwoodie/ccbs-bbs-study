@@ -64,10 +64,10 @@ df_0 %>% count(has_child_been_bitten, sort = TRUE) %>%
 # Check NA sumb
 
 ```{r} 
-df %>% summarise(NA_child_bitten = sum(is.na(has_child_been_bitten)),
+df_0 %>% summarise(NA_child_bitten = sum(is.na(has_child_been_bitten)),
                  blank_child_bitten = sum(has_child_been_bitten == "", na.rm = TRUE))
 
-df %>%
+df_0 %>%
   filter(is.na(has_child_been_bitten))
 ```
 
@@ -87,16 +87,16 @@ df_0 %>%
   arrange(household_id)
 ```
 # Find household_id for duplicate submission
-
+ 
 ```{r}
 df_0 %>% 
   filter(is.na(has_child_been_bitten),
          child_id == "Danny") %>% 
   select(owner_id, household_id, child_id, has_child_been_bitten, has_child_been_bitten_again)
 
-df %>% 
+df_0 %>% 
   filter(household_id == "1926f89bc8")
-View(df)
+View(df_0)
 ```
 
 # Session Info
@@ -104,3 +104,5 @@ View(df)
 ```{r}
 utils::sessionInfo()
 ```
+
+# 
