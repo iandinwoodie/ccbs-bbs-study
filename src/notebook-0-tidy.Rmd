@@ -531,23 +531,25 @@ non_logical_cols <- c(
   "household_id",
   "child_cnt_raw",
   "child_age_months",
-  "child_age_months/12",
+  "child_age_months",
   "child_age_years",
   "child_gender_std",
   "dog_age_months",
   "dog_age_years",
   "dog_sex_std")
 
+setdiff(non_logical_cols, names(df_bite))
+
 # convert all others to logical
 ## preserve NA
-df_bite <- df_bite %>% mutate(across(
-  all_of(non_log_cols), ~ case_when(
-    is.na(.) ~ NA,
-    . == 1 ~ TRUE,
-    . == 0 ~ FALSE,
-    . == TRUE ~ TRUE,
-    . == FALSE ~ FALSE,
-    TRUE ~ NA)))
+df_bite <- df_bite %>% 
+  mutate(across(-all_of(non_logical_cols), 
+                ~ case_when(is.na(.) ~ NA,
+                            . == 1 ~ TRUE, 
+                            . == 0 ~ FALSE,
+                            . == TRUE ~ TRUE,
+                            . == FALSE ~ FALSE,
+                            TRUE ~ NA)))
 
 # re-check variables
 df_bite %>% select(where(~ !is.logical(.))) %>% 
@@ -555,7 +557,7 @@ df_bite %>% select(where(~ !is.logical(.))) %>%
 
 # filter out non-logical columns
 df_bite %>% 
-  select(-all_of(non_log_cols)) %>% 
+  select(-all_of(non_logical_cols)) %>% 
   summarise(across(everything(), class))
 ```
 
