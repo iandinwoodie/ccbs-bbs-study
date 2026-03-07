@@ -76,7 +76,7 @@ Basic demographic summaries and standardization for analysis.
 
 Load packages used in tidy notebook.
 
-```{r}
+```{r packages}
 library(tidyverse)
 ```
 
@@ -132,7 +132,7 @@ df %>% group_by(household_id) %>% summarise(
 
 Create bite flag object.
 
-```{r "bite_flag_correct"}
+```{r bite-flag}
 df <- df %>% mutate(
     incident_present = 
       !is.na(child_id) |
@@ -165,7 +165,7 @@ df %>% summarise(n_total = n(),
 
 Create household groups to separate multiple submissions: one row per household.
 
-```{r}
+```{r household-summary}
 household_summary <- df %>%  
   group_by(household_id) %>% 
   summarise(n_household_submissions = n(),
@@ -235,7 +235,7 @@ df_tidy %>% filter(child_cnt == 0) %>%
 
 Save non-child and child rows and create dataframe to eliminate missingness
 
-```{r}
+```{r no-children}
 df_no_child <- df_tidy %>% filter(child_cnt == 0)
 
 df_child <- df_tidy %>% filter(child_cnt > 0)
@@ -279,33 +279,24 @@ df_bite %>% count(child_age_at_bite, sort = TRUE) %>%
 
 df_bite <- df_bite %>% 
   mutate(
-    age_raw = str_to_lower(str_trim(child_age_at_bite)),
-    age_num = readr::parse_number(age_raw),
+    child_age_raw = str_to_lower(str_squish(as.character(child_age_at_bite))),
+    child_age_num = readr::parse_number(child_age_raw),
     child_age_months = case_when(
-      is.na(age_raw) | age_raw == "" ~ NA_real_,
-      str_detect(age_raw, "month|mo\\b") ~ age_num,
-      str_detect(age_raw, "year|yr\\b|yo\\b") ~ age_num * 12,
-       str_detect(age_raw, "^around\\s*[0-9]") ~ age_num * 12,
-      str_detect(age_raw, "^[0-9]+\\.[0-9]+$") ~ age_num * 12,
-      str_detect(age_raw, "^[0-9]+$") ~ age_num * 12,
-                              TRUE ~ NA_real_), 
-    child_age_years = if_else(is.na(child_age_months),
-                              NA_real_,
-    child_age_months / 12))
+      is.na(child_age_raw) | child_age_raw == "" ~ NA_real_,
+      str_detect(child_age_raw, "month|months|mo\\b") ~ child_age_num,
+      str_detect(child_age_raw, "year|years|yr\\b|yo\\b") ~ child_age_num * 12,
+      str_detect(child_age_raw, "^around\\s*[0-9]") ~ child_age_num * 12,
+      child_age_raw %in% as.character(0:18) ~ child_age_num *12,
+      str_detect(child_age_raw, "^[0-9]+\\.[0-9]+$") ~ child_age_num * 12,
+                              TRUE ~ NA_real_),
+    child_age_years = child_age_months / 12)
 
 # check
 df_bite %>%
   count(child_age_at_bite, child_age_months, sort = TRUE)
 
-df_bite %>%  
-  select(child_age_months, child_age_years) %>% 
-  summary()
-
-class(df_bite$child_age_months) 
-class(df_bite$child_age_years)
-
 # drop columns
-df_bite <- df_bite %>% select(-age_raw, -age_num)
+df_bite <- df_bite %>% select(-child_age_raw, -child_age_num)
 
 # summary
 df_bite %>% select(child_age_months, child_age_years) %>% summary()
@@ -353,32 +344,32 @@ df_bite %>% count(dog_age_at_bite, sort = TRUE) %>%
 
 df_bite <- df_bite %>% 
   mutate(
-    dog_age_raw = str_to_lower(str_squish(dog_age_at_bite)),
-    dog_age_raw = str_replace_all(dog_age_raw, "[^0-9\\.a-z\\s]", ""), 
+    dog_age_raw = str_to_lower(str_squish(as.character(dog_age_at_bite))),
     dog_age_num = readr::parse_number(dog_age_raw),
     dog_age_months = case_when(
       is.na(dog_age_raw) | dog_age_raw == "" ~ NA_real_,
-      str_detect(dog_age_raw, "month|mo\\b") ~ dog_age_num, # months
-      str_detect(dog_age_raw, "year|yr\\b|yo\\b") ~ dog_age_num * 12, # years
-      str_detect(dog_age_raw, "^[0-9]+(\\.[0-9]+)?$") ~ dog_age_num * 12,
+      str_detect(dog_age_raw, "month|months|mo\\b") ~ dog_age_num, # months
+      str_detect(dog_age_raw, "year|years|yr\\b|yo\\b") ~ dog_age_num * 12, # years
+      str_detect(dog_age_raw, "^around\\s*[0-9]") ~ dog_age_num * 12, 
+      dog_age_raw %in% as.character(0:30)~ dog_age_num *12,
+      str_detect(dog_age_raw, "^[0-9]+\\.[0-9]+$") ~ dog_age_num * 12,
       TRUE ~ NA_real_),
-    dog_age_years = if_else(is.na(dog_age_months),
-                            NA_real_,
-                            dog_age_months / 12))
+    dog_age_years = dog_age_months / 12)
 
 # check
 df_bite %>%
   count(dog_age_at_bite, dog_age_months, sort = TRUE)
 
+# drop cols
+df_bite <- df_bite %>% 
+  select(-dog_age_raw, - dog_age_num)
+
+# summary
 df_bite %>% select(dog_age_months, dog_age_years) %>% 
   summary()
 
 class(df_bite$dog_age_months) 
 class(df_bite$dog_age_years) # numeric
-
-# drop cols
-df_bite <- df_bite %>% 
-  select(-dog_age_raw, - dog_age_num)
 ```
 
 ## Dog sex/neuter status
@@ -419,11 +410,11 @@ df_bite <- df_bite %>%
   select(-dog_sex_raw)
 ```
 
-# Checkbox item standardization
+# Column standardization
 
-*description*
+Identify and covert columns that need standardization
 
-## Save checkbox columns object
+## Checkbox columns standardization
 
 Identify and save survey items with multiple checkbox items.
 
@@ -456,7 +447,7 @@ checkbox_cols
 2.  dog_behavior_prior_to_bite\_\_
 3.  triggered_bite\_\_
 4.  bite_location\_\_
-5.  bite_severity\_\_\
+5.  bite_severity\_\_
 6.  dog_personality\_\_
 7.  dog_breed_category\_\_
 8.  dog_hybrid\_\_breed\_\_
@@ -483,29 +474,98 @@ df_bite <- df_bite %>%
 # check
 table(sapply(df_bite[checkbox_cols], class))
 
-# check
-
+# summary
 df_bite %>% 
   summarise(
     aggressive_true = sum(personality_at_bite__aggressive == TRUE, na.rm = TRUE),
     aggressive_false = sum(personality_at_bite__aggressive == FALSE, na.rm = TRUE),
     aggressive_na = sum(is.na(personality_at_bite__aggressive)))
 
-# check all
-
+# check NA
 colSums(is.na(df_bite[checkbox_cols])) # all zeros
 
-# check any NAs
-
-colSums(is.na(df_bite[checkbox_cols])) %>% 
-  sort(decreasing = TRUE) %>% 
-  .[. > 0] # zero
-
-check if all logical
+# check if all logical
 table(sapply(df_bite[checkbox_cols], class))
 ```
 
-# Second bite check
+1.  dog_consequence (T/F and character \# Misc column standardization
 
-1.  was_dog_leashed (T/F)
-2.  dog_consequence (T/F and character \# Misc column standardization
+## Identify columns that need standardization
+
+```{r identify-variables}
+df_bite %>% select(where(~ !is.logical(.))) %>% names()
+
+# manually rule out columns that should stay non-logical
+non_logical_cols <- c(
+  "child_cnt",
+  "child_id",
+  "child_sex",
+  "child_age_at_bite",
+  "desc_action_prior_to_bite",
+  "bite_severity",
+  "dog_age_at_bite",
+  "dog_sex",
+  "dog_breed_category",
+  "dog_purebred_breed",
+  "dog_consequences",
+  "child_age_at_second_bite",
+  "desc_action_prior_to_second_bite",
+  "second_bite_severity",
+  "desc_additional_bite_incidents",
+  "child_age_at_alt_dog_bite",
+  "desc_action_prior_to_alt_dog_bite",
+  "alt_dog_bite_severity",
+  "alt_dog_gender",
+  "alt_dog_age",
+  "alt_dog_breed_description",
+  "alt_dog_consequences",
+  "child_age_at_second_alt_dog_bite",
+  "desc_action_prior_to_second_alt_dog_bite",
+  "second_alt_dog_bite_severity",
+  "did_child_comfort_level_change_after_bite",
+  "anything_else_to_share",
+  "owner_id",
+  "location",
+  "response_type",
+  "network_id",
+  "household_id",
+  "child_cnt_raw",
+  "child_age_months",
+  "child_age_months/12",
+  "child_age_years",
+  "child_gender_std",
+  "dog_age_months",
+  "dog_age_years",
+  "dog_sex_std")
+
+# convert all others to logical
+## preserve NA
+df_bite <- df_bite %>% mutate(across(
+  all_of(non_log_cols), ~ case_when(
+    is.na(.) ~ NA,
+    . == 1 ~ TRUE,
+    . == 0 ~ FALSE,
+    . == TRUE ~ TRUE,
+    . == FALSE ~ FALSE,
+    TRUE ~ NA)))
+
+# re-check variables
+df_bite %>% select(where(~ !is.logical(.))) %>% 
+  names()
+
+# filter out non-logical columns
+df_bite %>% 
+  select(-all_of(non_log_cols)) %>% 
+  summarise(across(everything(), class))
+```
+
+# Save CSV
+
+save "df_bite" as a CSV for future analysis
+
+```{r}
+readr::write_csv(df_bite, "bite-data-std.csv")
+
+# confirm save
+list.files()
+```
