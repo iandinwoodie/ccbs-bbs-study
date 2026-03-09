@@ -419,43 +419,32 @@ Identify and covert columns that need standardization
 Identify and save survey items with multiple checkbox items.
 
 ```{r checkbox-cols}
-# numerical 
-numeric_cols <- names(df_bite)[sapply(df_bite, function(x) {
-  if (!is.numeric(x) && !is.integer(x)) return(FALSE)
-  vals <- unique(na.omit(x))
-  length(vals) > 0 && all(vals %in% c(0, 1))})]
 
-# character
-csv_cols <- names(df_bite)[sapply(df_bite, function(x) {
-  is.character(x) && any(str_detect(x, ","), na.rm = TRUE)})]
+# All checkbox items
+checkbox_cols <- names(df_bite)[str_detect(names(df_bite), "__")]
 
-# save checkbox columns
-checkbox_cols <- names(df_bite)[str_detect(
-  names(df_bite), "__")]
+# "Other" write-in items
+checkbox_other <- checkbox_cols[str_detect(
+  checkbox_cols,
+  "__other($|_)|other_text|specify|describe")]
+
+# save and convert selected checkbox columns to logical
+checkbox_logical <- setdiff(checkbox_cols, checkbox_other)
 
 # check
-numeric_cols
-csv_cols
 checkbox_cols
+checkbox_other
+checkbox_logical
 ```
 
 ## Convert checkbox items
 
-### logical: T/F
-
-1.  personality_at_bite\_\_
-2.  dog_behavior_prior_to_bite\_\_
-3.  triggered_bite\_\_
-4.  bite_location\_\_
-5.  bite_severity\_\_
-6.  dog_personality\_\_
-7.  dog_breed_category\_\_
-8.  dog_hybrid\_\_breed\_\_
+### Convert only true checkbox selections to logical (retain other)
 
 ```{r checkbox-conversion}
-# not selected is FALSE; selected is TRUE
+# unchecked = FALSE; checked = TRUE
 df_bite <- df_bite %>%
-  mutate(across(all_of(checkbox_cols), ~{
+  mutate(across(all_of(checkbox_logical), ~{
     x <- .x
     if (is.logical(x)) { 
       replace(x, is.na (x), FALSE )
@@ -464,28 +453,41 @@ df_bite <- df_bite %>%
           x == 1 ~ TRUE,
           TRUE ~ FALSE )
         } else if (is.character(x)) {
-          x2 <- str_squish(x)
+          x2 <- str_squish(as.character(x)
           case_when(
-            x2 == "" | is.na(x2) ~ FALSE,
+            is.na(x2) | x2 == "" ~ FALSE,
             TRUE ~ TRUE )
           } else { 
             FALSE }})) # all others
 
+# retain write-in "other" response as character string
+df_bite <- df_bite %>% 
+  mutate(across(all_of(checkbox_other), ~{
+    x <- str_squish(as.character(.x))
+    na_if(x, "")
+  }))
+
 # check
-table(sapply(df_bite[checkbox_cols], class))
+table(sapply(df_bite[checkbox_logical], class))
+table(sapply(df_bite[checkbox_other], class))
 
-# summary
-df_bite %>% 
-  summarise(
-    aggressive_true = sum(personality_at_bite__aggressive == TRUE, na.rm = TRUE),
-    aggressive_false = sum(personality_at_bite__aggressive == FALSE, na.rm = TRUE),
-    aggressive_na = sum(is.na(personality_at_bite__aggressive)))
+# check logical missingness
+df_bite %>% summarise(
+  across(all_of(checkbox_logical), list(
+    true = ~ sum(. == TRUE, na.rm = TRUE),
+    false = ~ sum(. == FALSE, na.rm = TRUE),
+    na = ~ sum(is.na(.)))))
 
-# check NA
-colSums(is.na(df_bite[checkbox_cols])) # all zeros
+# check "other" character strings
+df_bite %>% summarise(
+  across(all_of(checkbox_other), 
+         list(
+           nonmissing = ~ sum(!is.na(.)),
+           missing = ~ sum(is.na(.)))))
 
-# check if all logical
-table(sapply(df_bite[checkbox_cols], class))
+# view retained "other" answers
+df_bite %>% select(all_of(checkbox_other)) %>% 
+  print(width = Inf)
 ```
 
 1.  dog_consequence (T/F and character \# Misc column standardization
@@ -536,29 +538,32 @@ non_logical_cols <- c(
   "child_gender_std",
   "dog_age_months",
   "dog_age_years",
-  "dog_sex_std")
+  "dog_sex_std",
+  checkbox_other) %>% unique()
 
 setdiff(non_logical_cols, names(df_bite))
 
-# convert all others to logical
-## preserve NA
+# convert all others to logical; preserve NA
 df_bite <- df_bite %>% 
-  mutate(across(-all_of(non_logical_cols), 
-                ~ case_when(is.na(.) ~ NA,
-                            . == 1 ~ TRUE, 
-                            . == 0 ~ FALSE,
-                            . == TRUE ~ TRUE,
-                            . == FALSE ~ FALSE,
-                            TRUE ~ NA)))
+  mutate(across(-all_of(non_logical_cols), ~ case_when(
+    is.na(.) ~ NA,
+    . %in% c(1, TRUE) ~ TRUE, 
+    . %in% c(0, FALSE) ~ FALSE, 
+    TRUE ~ NA)))
 
 # re-check variables
-df_bite %>% select(where(~ !is.logical(.))) %>% 
+df_bite %>% 
+  select(where(~ is.logical(.))) %>% 
   names()
 
-# filter out non-logical columns
+# confirm retained "other" character strings
+table(sapply(df_bite[checkbox_other], class))
+
+# preview "other" responses
 df_bite %>% 
-  select(-all_of(non_logical_cols)) %>% 
-  summarise(across(everything(), class))
+  filter(if_any(all_of(checkbox_other), ~ !is.na(.))) %>% 
+  select(all_of(checkbox_other)) %>% 
+  print(width = Inf)
 ```
 
 # Save CSV
