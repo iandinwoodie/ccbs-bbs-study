@@ -455,7 +455,11 @@ df_bite <- df_bite %>%
           is.na(x) ~ FALSE,
           TRUE ~ FALSE)
         } else if (is.character(x)) {
+<<<<<<< HEAD
           x2 <- str_squish(as.character(x))
+=======
+          x2 <- str_squish(as.character(x)
+>>>>>>> 1cd52a3d3a6b9e56396973f1a56dfe2fdafcb4c7
           case_when(
             is.na(x2) | x2 == "" ~ FALSE,
             TRUE ~ TRUE )
@@ -473,7 +477,27 @@ df_bite <- df_bite %>%
 table(sapply(df_bite[checkbox_logical], class))
 table(sapply(df_bite[checkbox_other], class))
 
+<<<<<<< HEAD
 df_bite %>% count(triggered_bite__hugged_the_dog, sort = TRUE)
+=======
+# check logical missingness
+df_bite %>% summarise(
+  across(all_of(checkbox_logical), list(
+    true = ~ sum(. == TRUE, na.rm = TRUE),
+    false = ~ sum(. == FALSE, na.rm = TRUE),
+    na = ~ sum(is.na(.)))))
+
+# check "other" character strings
+df_bite %>% summarise(
+  across(all_of(checkbox_other), 
+         list(
+           nonmissing = ~ sum(!is.na(.)),
+           missing = ~ sum(is.na(.)))))
+
+# view retained "other" answers
+df_bite %>% select(all_of(checkbox_other)) %>% 
+  print(width = Inf)
+>>>>>>> 1cd52a3d3a6b9e56396973f1a56dfe2fdafcb4c7
 ```
 
 1.  dog_consequence (T/F and character \# Misc column standardization
@@ -538,7 +562,11 @@ df_bite <- df_bite %>%
 
 # re-check variables
 df_bite %>% 
+<<<<<<< HEAD
   select(where(~ !is.logical(.))) %>% 
+=======
+  select(where(~ is.logical(.))) %>% 
+>>>>>>> 1cd52a3d3a6b9e56396973f1a56dfe2fdafcb4c7
   names()
 
 # confirm retained "other" character strings
