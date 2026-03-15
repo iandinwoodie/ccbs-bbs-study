@@ -349,7 +349,7 @@ df_bite <- df_bite %>%
     dog_age_months = case_when(
       is.na(dog_age_raw) | dog_age_raw == "" ~ NA_real_,
       str_detect(dog_age_raw, "month|months|mo\\b") ~ dog_age_num, # months
-      str_detect(dog_age_raw, "year|years|yr\\b|yo\\b") ~ dog_age_num * 12, # years
+      str_detect(dog_age_raw, "year|years|yr\\b|yrs\\b|yo\\b") ~ dog_age_num * 12, # years
       str_detect(dog_age_raw, "^around\\s*[0-9]") ~ dog_age_num * 12, 
       dog_age_raw %in% as.character(0:30)~ dog_age_num *12,
       str_detect(dog_age_raw, "^[0-9]+\\.[0-9]+$") ~ dog_age_num * 12,
@@ -560,7 +560,7 @@ df_bite %>%
 save "df_bite" as a CSV for future analysis
 
 ```{r}
-readr::write_csv(df_bite, "bite-data-std.csv")
+readr::write_csv(df_bite, "../data/bite-data-std.csv")
 
 # confirm save
 list.files()
