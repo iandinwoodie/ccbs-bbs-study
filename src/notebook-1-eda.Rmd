@@ -6,7 +6,6 @@ output:
   pdf_document: default
 ---
 
-
 ```{r setup, include=FALSE}
 library(tidyverse)
 knitr::opts_chunk$set(echo=TRUE)
@@ -14,13 +13,11 @@ knitr::opts_chunk$set(echo=TRUE)
 
 # Overview
 
-This notebook documents the exploratory data analysis undertaken for this
-project.
+This notebook documents the exploratory data analysis undertaken for this project.
 
 # Loading the Data
 
-Load the tidy data set into memory. If it does not exist, then run the notebook
-that builds it.
+Load the tidy data set into memory. If it does not exist, then run the notebook that builds it.
 
 ```{r}
 tidy_data_filepath <- '../data/tidy.Rds'
@@ -48,7 +45,8 @@ length(unique(df$owner_id))
 utils::sessionInfo()
 ```
 
-## Load the Standardized Data
+# Load the Standardized Data
+
 ```{r}
 df_bite <- read_csv("../data/bite-data-std.csv")
 
@@ -59,6 +57,7 @@ dim(df_bite)
 # Child Demographics
 
 ## Child Gender
+
 Variable "child_gender_std" is a categorical variable indicating the reported gender of the child involved in bite incident.
 
 ```{r child-gender}
@@ -85,7 +84,8 @@ ggplot(df_bite, aes(x = child_gender_std)) +
 ```
 
 ## Child Age
-Variable "child_age_months" and "child_age_years" are continuous variables indicating the age of child involved, expressed in months and years. 
+
+Variable "child_age_months" and "child_age_years" are continuous variables indicating the age of child involved, expressed in months and years.
 
 ```{r child-age}
 # inspect values
@@ -134,6 +134,7 @@ ggplot(df_bite, aes(y = child_age_years)) +
 ```
 
 ## Child Count (per household)
+
 Variable "child_cnt_raw" and "child_cnt" are variables indicating number of children reported in the household.
 
 ```{r child-count}
@@ -172,8 +173,8 @@ ggplot(df_bite, aes(x = factor(child_cnt))) +
        y = "n") +
   theme_minimal()
 
-## barplot total sample size to guage distribution
-ggplot(df, aes(x = factor(child_cnt))) +
+## barplot total sample size to guage distribution ***BROKEN***
+ggplot(df_bite, aes(x = factor(child_cnt))) +
   geom_bar() +
   labs(title = "Children Per Household",
        x = "Children",
@@ -184,7 +185,8 @@ ggplot(df, aes(x = factor(child_cnt))) +
 # Dog Demographics
 
 ## Dog sex
-Variable "dog_sex_std" is a categorical variable indicating the reported sex of the dog involved in bite incident, independent of neuter status. 
+
+Variable "dog_sex_std" is a categorical variable indicating the reported sex of the dog involved in bite incident, independent of neuter status.
 
 ```{r dog-sex}
 # confirm categories
@@ -210,6 +212,7 @@ ggplot(df_bite, aes(x = dog_sex_std)) +
 ```
 
 ## Neuter status
+
 Variable "dog_neuter" is a logical variable indicating whether the dog involved in the bite incident was sterilized (TRUE = neutered/spayed, FALSE = intact).
 
 ```{r sterilization}
@@ -237,8 +240,13 @@ ggplot(df_bite, aes(x = factor(dog_neuter,
   theme_minimal()
 ```
 
-## Dog Age 
-Variable "dog_age_months" and "dog_age_years" are continuous variables indicating the age of the dog invloved in the bite incident. 
+# make double column
+
+## gender and neuter-status
+
+## Dog Age
+
+Variable "dog_age_months" and "dog_age_years" are continuous variables indicating the age of the dog invloved in the bite incident.
 
 ```{r dog-age}
 # inspect values
@@ -282,11 +290,13 @@ ggplot(df_bite, aes(y = dog_age_years)) +
   geom_boxplot() +
   labs(title = "Dog Age Boxplot (Bite Incidents)",
        y = "Dog Age (Years)") +
-  theme_minimal()
+  theme_minimal() 
 ```
 
 # Demographics Summary Table
-## Values table 
+
+## Values table
+
 ```{r}
 bite_demo_values_table <- tibble(Variable = c(
   "Child gender: Male",
@@ -326,6 +336,7 @@ bite_demo_values_table
 ```
 
 ## Demographic table with counts and proportions
+
 ```{r}
 N <- nrow(df_bite)
 
@@ -387,4 +398,3 @@ bite_demo_table <- tibble(Variable = c(
 bite_demo_table
         
 ```
-

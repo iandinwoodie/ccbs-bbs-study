@@ -557,6 +557,7 @@ df_bite %>%
 ```
 
 # Save CSV
+
 save "df_bite" as a CSV for future analysis
 
 ```{r}
@@ -564,4 +565,55 @@ readr::write_csv(df_bite, "../data/bite-data-std.csv")
 
 # confirm save
 list.files()
+```
+
+# Predictors
+
+## identify dog-warning columns
+
+```{r}
+dog_warning_cols <- names(df_bite) %>% 
+  stringr::str_subset("^dog_behavior_prior_to_bite__")
+
+dog_warning_cols
+```
+
+## Create dog-signal flag
+
+```{r}
+dog_warning_none_cols <- dog_warning_cols[stringr::str_detect(dog_warning_cols, "__none$")]
+
+dog_warning_signal_cols <- dog_warning_cols[!stringr::str_detect(dog_warning_cols, "__none$")]
+
+# check
+
+dog_warning_signal_cols
+dog_warning_none_cols
+
+# create logical dog_warning_positive (T/F) 
+```
+
+# Outcomes
+
+## Sort "other" responses into appropriate tiers and replace "NA" in 'bite_severity' column.
+
+```{r bite-severity-others}
+df_bite <- df_bite %>% mutate(
+  bite_severity = stringr::str_extract(
+    bite_severity, "(?<=Score )\\d") %>% as.numeric(),
+  bite_severity_other_recoded = case_when(
+  bite_severity__other == "No forewarning as it was a fall into dog that triggered bite response. Bite with puncture and laceration to lower left jawline." ~ 3, 
+  bite_severity__other == "Crabbing clothes and hands but no mark on the skin" ~ 1,
+  TRUE ~ NA_real_),
+  bite_severity_clean = coalesce(bite_severity, bite_severity_other_recoded))
+
+# delete helper column 
+df_bite$bite_severity_other_recoded <- NULL
+
+# check 
+table(df_bite$bite_severity_clean, useNA = "ifany") 
+
+df_bite %>% 
+  select(bite_severity, bite_severity__other, bite_severity_clean) %>% 
+  filter(!is.na(bite_severity__other) | is.na(bite_severity))
 ```
