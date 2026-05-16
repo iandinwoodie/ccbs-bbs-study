@@ -569,18 +569,18 @@ list.files()
 
 # Predictors
 
-## identify dog-warning columns
+## dog-warning columns
 
-```{r}
+```{r warning-cols}
 dog_warning_cols <- names(df_bite) %>% 
   stringr::str_subset("^dog_behavior_prior_to_bite__")
 
 dog_warning_cols
 ```
 
-## Create dog-signal flag
+## dog-warning cols flag
 
-```{r}
+```{r dog-warning-flag}
 dog_warning_none_cols <- dog_warning_cols[stringr::str_detect(dog_warning_cols, "__none$")]
 
 dog_warning_signal_cols <- dog_warning_cols[!stringr::str_detect(dog_warning_cols, "__none$")]
@@ -592,6 +592,35 @@ dog_warning_none_cols
 
 # create logical dog_warning_positive (T/F) 
 ```
+
+## as variables
+### dog-warning vars
+```{r warning-variables}
+df_bite <- df_bite %>% mutate(
+  dog_warning_any = if_any(
+    all_of(dog_warning_signal_cols),
+    ~ . == TRUE),
+  dog_warning_count = rowSums(
+    across(all_of(dog_warning_signal_cols)),
+    na.rm = TRUE),
+  dog_warning_none = if_any(
+    all_of(dog_warning_none_cols),
+    ~ . == TRUE))
+
+# check
+df_bite %>% count(dog_warning_any)
+
+summary(df_bite$dog_warning_count)
+
+df_bite %>% count(dog_warning_none)
+
+# check high-count rows
+df_bite %>% select(all_of(dog_warning_signal_cols),
+                   dog_warning_any,
+                   dog_warning_count) %>% 
+  arrange(desc(dog_warning_count)) %>% print(width = Inf)
+```
+
 
 # Outcomes
 
