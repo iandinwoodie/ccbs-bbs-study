@@ -246,7 +246,7 @@ ggplot(df_bite, aes(x = factor(dog_neuter,
 
 ## Dog Age
 
-Variable "dog_age_months" and "dog_age_years" are continuous variables indicating the age of the dog invloved in the bite incident.
+Variable "dog_age_months" and "dog_age_years" are continuous variables indicating the age of the dog involved in the bite incident.
 
 ```{r dog-age}
 # inspect values
@@ -398,3 +398,333 @@ bite_demo_table <- tibble(Variable = c(
 bite_demo_table
         
 ```
+
+# Behavioral Predictors
+## prior behavior and severity
+```{r approach-direction}
+df_bite <- df_bite %>% mutate(
+  child_action_category = as.character(child_action_category),
+  child_action_category = case_when(
+    child_action_category == "child_approached_dog" ~ "child_approached_dog",
+    child_action_category == "dog_approached_child" ~ "dog_approached_child",
+    child_action_category == "mutual_approach" ~ "mutual_approach",
+    child_action_category == "unknown" ~ "unknown",
+    TRUE ~ NA_character_),
+  child_action_category = factor(
+    child_action_category, levels = c(
+      "child_approached_dog",
+      "dog_approached_child",
+      "mutual_approach",
+      "unknown")))
+
+# visual
+ggplot(df_bite, aes(
+  x = child_action_category,
+  fill = factor(bite_severity_clean))) + 
+  geom_bar(position = "stack", na.rm = TRUE) +
+  scale_x_discrete(
+    drop = FALSE,
+    labels = c(
+      child_approached_dog = "Child approached dog",
+```
+
+
+```{r}
+dog_approached_child = "Dog approached child",
+      mutual_approach = "Mutual approach",
+      unknown = "Unknown")) +
+  labs(
+    title = "Bite Severity by Approach Direction",
+    x = "Direction",
+    y = "Count",
+    fill = "Severity") +
+  theme_minimal()
+```
+
+## warning signs and bite severity
+```{r warning-signals}
+df_bite %>% count(dog_warning_any, bite_severity_clean)
+
+# visual
+ggplot(df_bite, aes(
+  x = factor(bite_severity_clean),
+  fill = dog_warning_any)) + 
+  geom_bar(position = "stack") + 
+  scale_fill_discrete(labels = c(
+    "FALSE" = "No warning signal",
+    "TRUE" = "Warning signal")) +
+  labs(
+    title = "Warning Signals by Bite Severity",
+    x = "Bite Severity",
+    y = "Number of Warning Signals") +
+  theme_minimal()
+
+# warning count trend by severity
+df_bite %>% group_by(bite_severity_clean) %>% 
+  summarise(
+    warning_count_mean = mean(dog_warning_count, na.rm = TRUE),
+    warning_count_median = median(dog_warning_count, na.rm = TRUE),
+    n = n())
+
+# warning count distribution 
+ggplot(df_bite, aes(
+  x = factor(bite_severity_clean),
+  fill = factor(dog_warning_count))) + 
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) + 
+  labs(
+    title = "Warning Signal Distribution Across Severity",
+    x = "Bite Severity",
+    y = "Proportion of Cases",
+    fill = "Warning Signal Count") + 
+  theme_minimal()
+
+# Jitter plot
+ggplot(df_bite,
+       aes(
+         x = factor(bite_severity_clean),
+         y = dog_warning_count)) +
+  geom_jitter(
+    width = 0.15,
+    height = 0.05,
+    alpha = 0.7,
+    size = 3) +
+  labs(
+    title = "Warning Signal Across Bite Severities",
+    x = "Bite Severity",
+    y = "Warning Signal Count") +
+  theme_minimal()
+```
+
+## approach direction x warning signals
+```{r}
+df_bite %>% count(child_action_category, dog_warning_any)
+
+# visual 
+ggplot(df_bite, aes(
+  x = child_action_category,
+  fill = dog_warning_any)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_discrete(labels = c(
+    "FALSE" = "No warning signal",
+    "TRUE" = "Warning Signal")) +
+  scale_x_discrete(labels = c(
+    child_approached_dog = "Child approached dog",
+    dog_approached_child = "Dog approached child",
+    mutual_approach = "Mutual approach",
+    unknown = "Unknown")) +
+  labs(
+    title = "Warning Signals by Approach Direction",
+    x = "Approach Direction",
+    y = "Proportion of Bite Cases",
+    fill = "Warning Signal") + 
+  theme_minimal()
+
+# proportionality visual
+
+# define warning rate
+warning_summary <- df_bite %>%
+  group_by(child_action_category) %>%
+  summarise(
+    warning_rate = mean(dog_warning_any, na.rm = TRUE),
+    n = n())
+
+# visual
+ggplot(warning_summary, aes(
+  x = child_action_category,
+  y = warning_rate)) +
+  geom_point(size = 4) +
+  geom_segment(aes(
+    x = child_action_category,
+    xend = child_action_category,
+    y = 0,
+    yend = warning_rate)) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, 1)) +
+  scale_x_discrete(labels = c(
+    child_approached_dog = "Child approached dog",
+    dog_approached_child = "Dog approached child",
+    mutual_approach = "Mutual approach",
+    unknown = "Unknown")) +
+  labs(
+    title = "Proportion of Bite Incidents With Warning Signals",
+    x = "Interaction Direction",
+    y = "Warning Signal Prevalence") +
+  theme_minimal()
+```
+
+## child age x severity
+```{r}
+df_bite %>% group_by(bite_severity_clean) %>% 
+  summarise(
+    child_age_mean = mean(child_age_years, na.rm = TRUE),
+    child_age_median = median(child_age_years, na.rm = TRUE), 
+    child_age_sd = sd(child_age_years, na.rm = TRUE),
+    min_child_age = min(child_age_years, na.rm = TRUE), 
+    n = n(), 
+    .groups = "drop")
+
+# visual 
+ggplot(df_bite, aes(
+  x = factor(bite_severity_clean),
+  y = child_age_years)) + 
+  geom_boxplot() + geom_jitter(
+    width = 0.15,
+    alpha = 0.7,
+    size = 2) + 
+  labs(
+    title = "Child Age Across Bite Severity",
+    x = "Bite Severity",
+    y = "Child Age (Years)") + 
+  theme_minimal()
+```
+
+## child age x warning signals
+```{r}
+# summary table
+df_bite %>%
+  group_by(dog_warning_any) %>%
+  summarise(
+    mean_child_age = mean(child_age_years, na.rm = TRUE),
+    median_child_age = median(child_age_years, na.rm = TRUE),
+    sd_child_age = sd(child_age_years, na.rm = TRUE),
+    min_child_age = min(child_age_years, na.rm = TRUE),
+    max_child_age = max(child_age_years, na.rm = TRUE),
+    n = n(),
+    .groups = "drop")
+
+# visualization
+ggplot(df_bite,
+       aes(
+         x = dog_warning_any,
+         y = child_age_years)) +
+  geom_boxplot() +
+  geom_jitter(
+    width = 0.15,
+    alpha = 0.7,
+    size = 2) +
+  scale_x_discrete(labels = c(
+    "FALSE" = "No warning signal",
+    "TRUE" = "Warning signal")) +
+  labs(
+    title = "Child Age by Warning Signal Presence",
+    x = "Warning Signal Presence",
+    y = "Child Age (Years)") +
+  theme_minimal()
+```
+
+## dog age x severity
+```{r}
+# summary table
+df_bite %>%
+  group_by(bite_severity_clean) %>%summarise(
+    mean_dog_age = mean(dog_age_years, na.rm = TRUE),
+    median_dog_age = median(dog_age_years, na.rm = TRUE),
+    sd_dog_age = sd(dog_age_years, na.rm = TRUE),
+    min_dog_age = min(dog_age_years, na.rm = TRUE),
+    max_dog_age = max(dog_age_years, na.rm = TRUE),
+    n = n(),
+    .groups = "drop")
+
+# visualization
+ggplot(df_bite, aes(
+         x = factor(bite_severity_clean),
+         y = dog_age_years)) +
+  geom_boxplot() +
+  geom_jitter(
+    width = 0.15,
+    alpha = 0.7,
+    size = 2) +
+  labs(
+    title = "Dog Age Across Bite Severities",
+    x = "Bite Severity",
+    y = "Dog Age (Years)") +
+  theme_minimal()
+```
+```{r dog-age-x-warning}
+## dog age x warning signs 
+# summary table
+df_bite %>%
+  group_by(dog_warning_any) %>% summarise(
+    mean_dog_age = mean(dog_age_years, na.rm = TRUE),
+    median_dog_age = median(dog_age_years, na.rm = TRUE),
+    sd_dog_age = sd(dog_age_years, na.rm = TRUE),
+    min_dog_age = min(dog_age_years, na.rm = TRUE),
+    max_dog_age = max(dog_age_years, na.rm = TRUE),
+    n = n(),
+    .groups = "drop")
+
+# visualization
+ggplot(df_bite, aes(
+         x = dog_warning_any,
+         y = dog_age_years)) +
+  geom_boxplot() +
+  geom_jitter(
+    width = 0.15,
+    alpha = 0.7,
+    size = 2) +
+  scale_x_discrete(labels = c(
+    "FALSE" = "No warning signal",
+    "TRUE" = "Warning signal")) +
+  labs(
+    title = "Dog Age by Warning Signal Presence",
+    x = "Warning Signal Presence",
+    y = "Dog Age (Years)") +
+  theme_minimal()
+```
+
+
+```{r dog-gender-x-severity}
+## dog gender x severity
+# counts
+df_bite %>% count(dog_sex_std, bite_severity_clean)
+
+# visualization
+ggplot(df_bite, aes(
+         x = dog_sex_std,
+         fill = factor(bite_severity_clean))) +
+  geom_bar(position = "stack") +
+  scale_x_discrete(labels = c(
+    Female = "Female",
+    Male = "Male")) +
+  labs(
+    title = "Bite Severity by Dog Sex",
+    x = "Dog Sex",
+    y = "Count",
+    fill = "Severity") +
+  theme_minimal()
+```
+
+```{r dog-gender-signal}
+## dog gender x signals
+# counts
+df_bite %>% count(dog_sex_std, dog_warning_any)
+
+# proportional visualization
+ggplot(df_bite, aes(
+         x = dog_sex_std,
+         fill = dog_warning_any)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_discrete(labels = c(
+    "FALSE" = "No warning signal",
+    "TRUE" = "Warning signal")) +
+  scale_x_discrete(labels = c(
+    Female = "Female",
+    Male = "Male")) +
+  labs(
+    title = "Warning Signal Presence by Dog Sex",
+    x = "Dog Sex",
+    y = "Proportion of Cases",
+    fill = "Warning Signal") +
+  theme_minimal()
+```
+
+## breed x warning signal
+
+## breed type x severity
+
+### MISSING data on what age the dog was when they started living in their current home
+
