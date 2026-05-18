@@ -426,16 +426,12 @@ ggplot(df_bite, aes(
     drop = FALSE,
     labels = c(
       child_approached_dog = "Child approached dog",
-```
-
-
-```{r}
-dog_approached_child = "Dog approached child",
+      dog_approached_child = "Dog approached child",
       mutual_approach = "Mutual approach",
       unknown = "Unknown")) +
   labs(
     title = "Bite Severity by Approach Direction",
-    x = "Direction",
+    x = "Approach Direction",
     y = "Count",
     fill = "Severity") +
   theme_minimal()

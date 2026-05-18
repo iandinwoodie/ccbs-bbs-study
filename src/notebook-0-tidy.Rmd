@@ -594,33 +594,89 @@ dog_warning_none_cols
 ```
 
 ## as variables
+
 ### dog-warning vars
+
 ```{r warning-variables}
+# exclude __other from NAs
+dog_warning_signal_cols <- dog_warning_signal_cols[
+  dog_warning_signal_cols != "dog_behavior_prior_to_bite__other"
+]
+
+# re-build variables
 df_bite <- df_bite %>% mutate(
   dog_warning_any = if_any(
     all_of(dog_warning_signal_cols),
-    ~ . == TRUE),
-  dog_warning_count = rowSums(
-    across(all_of(dog_warning_signal_cols)),
-    na.rm = TRUE),
+    ~ .x == TRUE),
   dog_warning_none = if_any(
     all_of(dog_warning_none_cols),
-    ~ . == TRUE))
+    ~ .x == TRUE),
+  dog_warning_count = rowSums(
+    across(all_of(dog_warning_signal_cols), ~ as.numeric(.x)),
+    na.rm = TRUE),)
 
 # check
-df_bite %>% count(dog_warning_any)
+df_bite %>% count(dog_warning_any, dog_warning_none)
 
 summary(df_bite$dog_warning_count)
 
 df_bite %>% count(dog_warning_none)
 
+# inspect "other"
+df_bite %>% filter(!is.na(dog_behavior_prior_to_bite__other)) %>% 
+  select(dog_behavior_prior_to_bite__other) %>% 
+  print(n = 22)
+
 # check high-count rows
 df_bite %>% select(all_of(dog_warning_signal_cols),
                    dog_warning_any,
                    dog_warning_count) %>% 
-  arrange(desc(dog_warning_count)) %>% print(width = Inf)
+  arrange(desc(dog_warning_count)) %>% print(n = 32)
+
+# warning prevalence table
+df_bite %>% count(dog_warning_any) %>%
+  mutate(percent = round(n / sum(n) * 100, 1))
+
+# count distribution 
+df_bite %>% count(dog_warning_count)
+
+# individual warning freq 
+df_bite %>% summarise(across(all_of(
+  dog_warning_signal_cols), 
+  ~ sum(.x, na.rm = TRUE))) %>% 
+  pivot_longer(everything(),
+               names_to = "warning_signal",
+               values_to = "count") %>% 
+  arrange(desc(count))
 ```
 
+## child-action-prior
+
+```{r child-action-category}
+# inspect values
+df_bite %>% count(desc_action_prior_to_bite, sort = TRUE) %>% 
+  print(n = 32, width = Inf)
+
+# std interaction direction
+df_bite <- df_bite %>% mutate(
+  child_action_category = case_when(
+    desc_action_prior_to_bite == "The child approached the dog" ~
+      "child_approached_dog",
+    desc_action_prior_to_bite == "The dog approached the child" ~
+      "dog_approached_child",
+    desc_action_prior_to_bite == "They approached each other" ~
+      "mutual_approach",
+    desc_action_prior_to_bite == "I'm not sure" ~
+      "unknown",
+    TRUE ~ NA_character_))
+
+# check
+df_bite %>% count(child_action_category, sort = TRUE)
+
+df_bite %>% select(desc_action_prior_to_bite) %>% 
+  distinct() %>% 
+  print(n = 32, width = Inf)
+```
 
 # Outcomes
 
@@ -645,4 +701,10 @@ table(df_bite$bite_severity_clean, useNA = "ifany")
 df_bite %>% 
   select(bite_severity, bite_severity__other, bite_severity_clean) %>% 
   filter(!is.na(bite_severity__other) | is.na(bite_severity))
+```
+
+# Save new df as CSV
+
+```{r}
+readr::write_csv(df_bite, "../data/bite-data-std.csv")
 ```
