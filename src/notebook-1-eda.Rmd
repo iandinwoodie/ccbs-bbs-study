@@ -48,153 +48,130 @@ utils::sessionInfo()
 # Load the Standardized Data
 
 ```{r}
-df_bite <- read_csv("../data/bite-data-std.csv")
+df_bite <- readRDS("../data/df_clean.rds")
 
-# cleaning check
-dim(df_bite)
+stopifnot(nrow(df_bite) == 32)
 ```
 
-# Child Demographics
+# Demographics
 
-## Child Gender
+## Child Count
 
-Variable "child_gender_std" is a categorical variable indicating the reported gender of the child involved in bite incident.
-
-```{r child-gender}
-# confirm std categories 
-unique(df_bite$child_gender_std)
-
-df_bite %>% count(child_gender_std, sort = TRUE)
-
-# check missing
-df_bite %>% summarise(sum(is.na(child_gender_std)))
-
-# summary tables (gender frequency)
-df_bite %>% count(child_gender_std) %>% 
-  mutate(percent = round(n / sum(n) * 100, 1))
-
-# visual 
-## bar chart
-ggplot(df_bite, aes(x = child_gender_std)) + 
-  geom_bar() + 
-  labs(title = "Child Gender Distributiuon (Bite Incidents)",
-       x = "Child Gender",
-       y = "Count") + 
-  theme_minimal()
-```
-
-## Child Age
-
-Variable "child_age_months" and "child_age_years" are continuous variables indicating the age of child involved, expressed in months and years.
-
-```{r child-age}
-# inspect values
-summary(df_bite$child_age_months)
-summary(df_bite$child_age_years)
-
-# check missing
-df_bite %>% summarise(
-  n_child_months_missing = sum(is.na(child_age_months)),
-  n_child_years_missing = sum(is.na(child_age_years)))
-
-# summary tables 
-## MONTHS
-df_bite %>% summarise(
-  n_child_months = sum(!is.na(child_age_months)),
-  mean_child_months = mean(child_age_months, na.rm = TRUE),
-  sd_child_months = sd(child_age_months, na.rm = TRUE),
-  min_child_months = min(child_age_months, na.rm = TRUE),
-  max_child_months = max(child_age_months, na.rm = TRUE),
-  median_child_months = median(child_age_months, na.rm = TRUE))
-
-## YEARS
-df_bite %>% summarise(
-  n_child_years = sum(!is.na(child_age_years)),
-  mean_child_years = mean(child_age_years, na.rm = TRUE),
-  sd_child_years = sd(child_age_years, na.rm = TRUE),
-  min_child_years = min(child_age_years, na.rm = TRUE),
-  max_child_years = max(child_age_years, na.rm = TRUE),
-  median_child_years = median(child_age_years, na.rm = TRUE))
-
-# visuals 
-## histogram
-ggplot(df_bite, aes(x = child_age_years)) +
-  geom_histogram(binwidth = 1) +
-  labs(title = "Child Age Distribution (Bite Incidents)",
-       x = "Child Age (Years)",
-       y = "Count") +
-  theme_minimal()
-
-## boxplot
-ggplot(df_bite, aes(y = child_age_years)) +
-  geom_boxplot() +
-  labs(title = "Child Age Boxplot (Bite Incidents)",
-       y = "Child Age (Years)") +
-  theme_minimal()
-```
-
-## Child Count (per household)
-
-Variable "child_cnt_raw" and "child_cnt" are variables indicating number of children reported in the household.
+Number of children per household.
 
 ```{r child-count}
-# verify equivalence
-sum(df_bite$child_cnt != df_bite$child_cnt_raw, na.rm = TRUE)
-
-# check structure
-str(df_bite$child_cnt_raw)
-str(df_bite$child_cnt) # both numerical, ignore child_cnt_raw moving forward
-
-# inspect values
+# inspect
 summary(df_bite$child_cnt)
 
-df_bite %>% summarise(
-  n_child_cnt_missing = sum(is.na(child_cnt)))
+# missing
+df_bite %>% summarise(n_missing = sum(is.na(child_cnt)))
 
 # summary statistics
 df_bite %>% summarise(
-  n_child_cnt = sum(!is.na(child_cnt)),
-  mean_child_cnt = mean(child_cnt, na.rm = TRUE),
-  sd_child_cnt = sd(child_cnt, na.rm = TRUE), 
-  min_child_cnt = min(child_cnt, na.rm = TRUE),
-  max_child_cnt = max(child_cnt, na.rm = TRUE),
-  median_child_cnt = median(child_cnt, na.rm = TRUE))
+  n = sum(!is.na(child_cnt)),
+  mean = mean(child_cnt, na.rm = TRUE),
+  median = median(child_cnt, na.rm = TRUE),
+  sd = sd(child_cnt, na.rm = TRUE), 
+  min = min(child_cnt, na.rm = TRUE),
+  max = max(child_cnt, na.rm = TRUE))
 
 # summary table
 df_bite %>% count(child_cnt) %>% mutate(
   percent = round(n / sum(n) * 100, 1))
 
 # Visuals
-## barplot within incidents 
+## barplot
 ggplot(df_bite, aes(x = factor(child_cnt))) +
-  geom_bar() +
-  labs(title = "Children Per Household (Bite Incident)",
-       x = "Children",
-       y = "n") +
-  theme_minimal()
-
-## barplot total sample size to guage distribution ***BROKEN***
-ggplot(df_bite, aes(x = factor(child_cnt))) +
-  geom_bar() +
-  labs(title = "Children Per Household",
-       x = "Children",
-       y = "n") +
+  geom_bar() + labs(
+    title = "Children Per Household (bite occurred)",
+    x = "Children",
+    y = "n") +
   theme_minimal()
 ```
 
-# Dog Demographics
+## Child Gender
+
+Distribution of gender of child involved in bite occurrence.
+
+```{r child-gender}
+# inspect
+df_bite %>% count(child_gender_std, sort = TRUE)
+
+# check missing
+df_bite %>% summarise(sum(is.na(child_gender_std)))
+
+# summary table
+df_bite %>% count(child_gender_std) %>% 
+  mutate(percent = round(n / sum(n) * 100, 1))
+
+# visual
+## barplot
+ggplot(df_bite, aes(x = child_gender_std)) + 
+  geom_bar() + labs(
+    title = "Child Gender Distribution (bite occurred)",
+    x = "Child Gender",
+    y = "n") + 
+  theme_minimal()
+```
+
+## Child Age
+
+Age of child involved, expressed in months and years.
+
+```{r child-age}
+# inspect values
+summary(df_bite$child_age_years)
+
+# check missing
+df_bite %>% summarise(
+  n_missing = sum(is.na(child_age_years)))
+
+# summary tables 
+## months
+df_bite %>% summarise(
+  n = sum(!is.na(child_age_months)),
+  mean = mean(child_age_months, na.rm = TRUE),
+  median = median(child_age_months, na.rm = TRUE),
+  sd = sd(child_age_months, na.rm = TRUE),
+  min = min(child_age_months, na.rm = TRUE),
+  max = max(child_age_months, na.rm = TRUE),
+  min = min(child_age_months, na.rm = TRUE))
+
+## years
+df_bite %>% summarise(
+  n = sum(!is.na(child_age_years)),
+  mean = mean(child_age_years, na.rm = TRUE),
+  median = median(child_age_years, na.rm = TRUE),
+  sd = sd(child_age_years, na.rm = TRUE),
+  max = max(child_age_years, na.rm = TRUE),
+  min = min(child_age_years, na.rm = TRUE))
+
+# visuals 
+## histogram
+ggplot(df_bite, aes(x = child_age_years)) +
+  geom_histogram(binwidth = 1) + labs(
+    title = "Child Age Distribution (bite occurred)",
+    x = "Child Age (Years)",
+    y = "n") +  
+  theme_minimal()
+
+## boxplot
+ggplot(df_bite, aes(y = child_age_years)) +
+  geom_boxplot() + labs(
+    title = "Child Age Boxplot (bite occurred)",
+    y = "Child Age (Years)") +
+  theme_minimal()
+```
 
 ## Dog sex
 
-Variable "dog_sex_std" is a categorical variable indicating the reported sex of the dog involved in bite incident, independent of neuter status.
+Sex of dog involved in bite: Male/Female categories (regardless of neuter-status).
 
 ```{r dog-sex}
-# confirm categories
-unique(df_bite$dog_sex_std)
-
+# inspect
 df_bite %>% count(dog_sex_std, sort = TRUE)
 
-# check missing
+# missing
 df_bite %>% summarise(sum(is.na(dog_sex_std)))
 
 # summary tables
@@ -205,7 +182,7 @@ df_bite %>% count(dog_sex_std) %>% mutate(
 ## barplot
 ggplot(df_bite, aes(x = dog_sex_std)) +
   geom_bar() +
-  labs(title = "Dog Sex Distribution (Bite Incidents)",
+  labs(title = "Dog Sex Distribution (bite occurred)",
        x = "Sex",
        y = "n") +
   theme_minimal()
@@ -213,12 +190,10 @@ ggplot(df_bite, aes(x = dog_sex_std)) +
 
 ## Neuter status
 
-Variable "dog_neuter" is a logical variable indicating whether the dog involved in the bite incident was sterilized (TRUE = neutered/spayed, FALSE = intact).
+Reproductive sterilization (TRUE = neutered/spayed, FALSE = intact).
 
-```{r sterilization}
+```{r neuter-status}
 # inspect values
-unique(df_bite$dog_neuter)
-
 df_bite %>% count(dog_neuter, sort = TRUE)
 
 # check missing 
@@ -226,137 +201,111 @@ df_bite %>% summarise(sum(is.na(dog_neuter)))
 
 # summary table
 df_bite %>% count(dog_neuter) %>% mutate(
-  percent = round(n / sum(n) * 100, 1))
+  neuter_status = case_when(
+    dog_neuter == TRUE ~ "Sterilized",
+    dog_neuter == FALSE ~ "Intact",
+    TRUE ~ NA_character_),
+  percent = round(n / sum(n) * 100, 1)) %>% 
+  select(neuter_status, n, percent)
 
 # visual
 ## barplot
-ggplot(df_bite, aes(x = factor(dog_neuter, 
-                               levels = c(FALSE, TRUE),
-                               labels = c("Intact", "Sterilized")))) +
-  geom_bar() + 
-  labs(title = "Dog Sterilization Status (Bite Incidents)",
-       x = "Sterilized",
-       y = "n") +
+ggplot(df_bite, aes(x = factor(
+  dog_neuter,
+  levels = c(FALSE, TRUE),
+  labels = c("Intact", "Sterilized")))) +
+  geom_bar() + labs(
+    title = "Dog Sterilization Status (bite occurred)",
+    x = "Sterilization Status",
+    y = "n") +
+  theme_minimal()
+
+## dog sex by neuter status
+df_bite %>% filter(
+  !is.na(dog_sex_std), !is.na(dog_neuter)) %>% 
+  count(dog_sex_std, dog_neuter) %>% 
+  ggplot(aes(
+    x = dog_sex_std, 
+    y = n, 
+    fill = factor(dog_neuter, 
+                  levels = c(FALSE, TRUE),
+                  labels = c("Intact", "Sterilized")))) + 
+  geom_col(
+    position = "dodge") + labs(
+      title = "Dog Sex by Neuter Status (bite occurred)",
+      x = "Sex",
+      y = "n",
+      fill = "Sterilization Status") + 
   theme_minimal()
 ```
 
-# make double column
+## Dog age
 
-## gender and neuter-status
-
-## Dog Age
-
-Variable "dog_age_months" and "dog_age_years" are continuous variables indicating the age of the dog involved in the bite incident.
+Age of dog involved, expressed in months and years.
 
 ```{r dog-age}
 # inspect values
-summary(df_bite$dog_age_months)
 summary(df_bite$dog_age_years)
 
 # check missing
-df_bite %>% summarise(sum(is.na(dog_age_months))) 
-df_bite %>% summarise(sum(is.na(dog_age_years))) 
-
-# summary tables
-## MONTHS
 df_bite %>% summarise(
-  n_dog_months = sum(!is.na(dog_age_months)),
-  mean_dog_months = mean(dog_age_months, na.rm = TRUE),
-  sd_dog_months = sd(dog_age_months, na.rm = TRUE),
-  min_dog_months = min(dog_age_months, na.rm = TRUE),
-  max_dog_months = max(dog_age_months, na.rm = TRUE),
-  median_dog_months = median(dog_age_months, na.rm = TRUE))
+  n_missing = sum(is.na(dog_age_years)))
 
-## YEARS  
+# summary tables 
+## months
 df_bite %>% summarise(
-  n_dog_years = sum(!is.na(dog_age_years)),
-  mean_dog_years = mean(dog_age_years, na.rm = TRUE),
-  sd_dog_years = sd(dog_age_years, na.rm = TRUE),
-  min_dog_years = min(dog_age_years, na.rm = TRUE),
-  max_dog_years = max(dog_age_years, na.rm = TRUE),
-  median_dog_years = median(dog_age_years, na.rm = TRUE))
+  n = sum(!is.na(dog_age_months)),
+  mean = mean(dog_age_months, na.rm = TRUE),
+  median = median(dog_age_months, na.rm = TRUE),
+  sd = sd(dog_age_months, na.rm = TRUE),
+  min = min(dog_age_months, na.rm = TRUE),
+  max = max(dog_age_months, na.rm = TRUE),
+  min = min(dog_age_months, na.rm = TRUE))
 
-# Visuals
+## years
+df_bite %>% summarise(
+  n = sum(!is.na(dog_age_years)),
+  mean = mean(dog_age_years, na.rm = TRUE),
+  median = median(dog_age_years, na.rm = TRUE),
+  sd = sd(dog_age_years, na.rm = TRUE),
+  max = max(dog_age_years, na.rm = TRUE),
+  min = min(dog_age_years, na.rm = TRUE))
+
+# visuals 
 ## histogram
-ggplot(df_bite, aes(x = dog_age_years)) +
-  geom_histogram(binwidth = 1) +
-  labs(title = "Dog Age Distribution (Bite Incidents)",
-       x = "Dog Age (Years)",
-       y = "n") +
+ggplot(df_bite, aes(x = child_age_years)) +
+  geom_histogram(binwidth = 1) + labs(
+    title = "Dog Age Distribution (bite occurred)",
+    x = "Dog Age (Years)",
+    y = "n") +  
   theme_minimal()
 
 ## boxplot
-ggplot(df_bite, aes(y = dog_age_years)) +
-  geom_boxplot() +
-  labs(title = "Dog Age Boxplot (Bite Incidents)",
-       y = "Dog Age (Years)") +
-  theme_minimal() 
+ggplot(df_bite, aes(y = child_age_years)) +
+  geom_boxplot() + labs(
+    title = "Dog Age Boxplot (bite occurred)",
+    y = "Dog Age (Years)") +
+  theme_minimal()
 ```
 
-# Demographics Summary Table
+# Summary table
 
-## Values table
+Demographic summaries table with counts and proportions.
 
-```{r}
-bite_demo_values_table <- tibble(Variable = c(
-  "Child gender: Male",
-  "Child gender: Female", 
-  "Child gender: Prefer not to say",
-  
-  "Child age (years)",
-  
-  "Child count per household", 
-  
-  "Dog sex: Male",
-  "Dog sex: Female",
-  
-  "Dog sterilized",
-  "Dog intact",
-  
-  "Dog age (years)"),
-  
-  Value = c(
-    sum(df_bite$child_gender_std == "Male", na.rm = TRUE),
-    sum(df_bite$child_gender_std == "Female", na.rm = TRUE),
-    sum(df_bite$child_gender_std == "Prefer not to say", na.rm = TRUE),
-                
-    mean(df_bite$child_age_years, na.rm = TRUE),
-                
-    mean(df_bite$child_cnt, na.rm = TRUE),
-                
-    sum(df_bite$dog_sex_std == "Male", na.rm = TRUE),
-    sum(df_bite$dog_sex_std == "Female", na.rm = TRUE),
-                
-                sum(df_bite$dog_neuter == TRUE, na.rm = TRUE),
-                sum(df_bite$dog_neuter == FALSE, na.rm = TRUE),
-                
-                mean(df_bite$dog_age_years, na.rm = TRUE)))
-
-bite_demo_values_table
-```
-
-## Demographic table with counts and proportions
-
-```{r}
+```{r demographic-summary}
 N <- nrow(df_bite)
 
 bite_demo_table <- tibble(Variable = c(
   "Child gender: Male",
   "Child gender: Female", 
   "Child gender: Prefer not to say",
-  
   "Child age (years)",
-  
   "Child count per household", 
-  
   "Dog sex: Male",
   "Dog sex: Female",
-  
   "Dog sterilized",
   "Dog intact",
-  
   "Dog age (years)"),
-  
   Value = c(
     sprintf("%d (%.1f%%)",
             sum(df_bite$child_gender_std == "Male", na.rm = TRUE),
@@ -365,79 +314,463 @@ bite_demo_table <- tibble(Variable = c(
             sum(df_bite$child_gender_std == "Female", na.rm = TRUE),
             100 * sum(df_bite$child_gender_std == "Female", na.rm = TRUE) / N),
     sprintf("%d (%.1f%%)",
-            sum(df_bite$child_gender_std == "Prefer not to say", na.rm = TRUE),
-            100 * sum(df_bite$child_gender_std == "Prefer not to say", na.rm = TRUE) / N), 
-    
+            sum(df_bite$child_gender_std == 
+                  "Prefer not to say", na.rm = TRUE),
+            100 * sum(df_bite$child_gender_std == 
+                        "Prefer not to say", na.rm = TRUE) / N),
     sprintf("%.2f (%.2f)",
             mean(df_bite$child_age_years, na.rm = TRUE),
             sd(df_bite$child_age_years, na.rm = TRUE)),
-    
     sprintf("%.2f (%.2f)",
             mean(df_bite$child_cnt, na.rm = TRUE),
             sd(df_bite$child_cnt, na.rm = TRUE)),
-    
     sprintf("%d (%.1f%%)",
             sum(df_bite$dog_sex_std == "Male", na.rm = TRUE),
             100 * sum(df_bite$dog_sex_std == "Male", na.rm = TRUE) / N), 
     sprintf("%d (%.1f%%)",
             sum(df_bite$dog_sex_std == "Female", na.rm = TRUE),
             100 * sum(df_bite$dog_sex_std == "Female", na.rm = TRUE) / N),
-    
     sprintf("%d (%.1f%%)",
             sum(df_bite$dog_neuter == TRUE, na.rm = TRUE),
             100 * sum(df_bite$dog_neuter == TRUE, na.rm = TRUE) / N), 
     sprintf("%d (%.1f%%)",
             sum(df_bite$dog_neuter == FALSE, na.rm = TRUE),
             100 * sum(df_bite$dog_neuter == FALSE, na.rm = TRUE) / N), 
-    
     sprintf("%.2f (%.2f)",
             mean(df_bite$dog_age_years, na.rm = TRUE),
             sd(df_bite$dog_age_years, na.rm = TRUE))))
 
   
 bite_demo_table
-        
 ```
 
-# Behavioral Predictors
-## prior behavior and severity
+# Variables
+
+## Dog behavior prior to bite
+
+dog_warning_any, \_count
+
+```{r dog-warning}
+df_bite %>% count(dog_warning_any, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1))
+
+df_bite %>% count(dog_warning_none, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1))
+
+df_bite %>% count(dog_warning_count, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1)) %>% 
+  arrange(dog_warning_count)
+
+# summary table
+df_bite %>% summarise(
+  n = n(),
+  n_warning_any = sum(
+    dog_warning_any == TRUE, na.rm = TRUE),
+  pct_warning_any = round(mean(
+    dog_warning_any == TRUE, na.rm = TRUE) * 100, 1),
+  n_warning_none = sum(
+    dog_warning_none == TRUE, na.rm = TRUE),
+  pct_warning_none = round(mean(
+    dog_warning_none == TRUE, na.rm = TRUE) * 100, 1),
+  mean = mean(dog_warning_count, na.rm = TRUE),
+  median = median(dog_warning_count, na.rm = TRUE),
+  sd = sd(dog_warning_count, na.rm = TRUE),
+  min = min(dog_warning_count, na.rm = TRUE),
+  max = max(dog_warning_count, na.rm = TRUE))
+
+# visuals
+## barplot
+ggplot(df_bite, aes(x = factor(
+  dog_warning_any,
+  levels = c(FALSE, TRUE),
+  labels = c("No warning signal", "Warning signal")))) +
+  geom_bar() + labs(
+    title = "Dog Warning Signal Prior to Bite",
+    x = "Warning signal reported",
+    y = "n") +
+  theme_minimal()
+
+## barplot: number of warning signals
+df_bite %>% count(dog_warning_count, name = "n") %>% 
+  ggplot(aes(x = factor(dog_warning_count), y = n)) +
+  geom_col() + labs(
+    title = "Number of Dog Warning Signals Prior to Bite",
+    x = "Number of warning signals",
+    y = "n") +
+  theme_minimal()
+
+## barplot: specific warning signals
+dog_warning_cols <- names(df_bite) %>% 
+  stringr::str_subset("^dog_behavior_prior_to_bite__") %>% 
+  setdiff(c(
+    "dog_behavior_prior_to_bite__other",
+    "dog_behavior_prior_to_bite__none"))
+
+df_bite %>% 
+  summarise(across(all_of(
+    dog_warning_cols),
+    ~ sum(.x == TRUE, 
+          na.rm = TRUE))) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "warning_signal",
+    values_to = "n") %>% 
+  mutate(
+    warning_signal = warning_signal %>% 
+      stringr::str_remove("^dog_behavior_prior_to_bite__") %>% 
+      stringr::str_replace_all("_", " ") %>% 
+      stringr::str_to_sentence()) %>% 
+  arrange(n) %>% 
+  ggplot(aes(x = reorder(warning_signal, n), y = n)) +
+  geom_col() + coord_flip() + labs(
+    title = "Dog Warning Signals Reported",
+    x = "Warning signal",
+    y = "n") +
+  theme_minimal()
+```
+
+## Dog trigger
+
+dog_trigger_any, \_count
+
+```{r dog-trigger}
+# inspect
+df_bite %>% count(dog_trigger_any, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1))
+
+df_bite %>% count(dog_trigger_count, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1)) %>% 
+  arrange(dog_trigger_count)
+
+# summary table
+df_bite %>% summarise(
+  n = n(),
+  n_trigger_any = sum(dog_trigger_any == TRUE, na.rm = TRUE),
+  pct_trigger_any = round(mean(dog_trigger_any == TRUE, na.rm = TRUE) * 100, 1),
+  mean_trigger_count = mean(dog_trigger_count, na.rm = TRUE),
+  median_trigger_count = median(dog_trigger_count, na.rm = TRUE),
+  sd_trigger_count = sd(dog_trigger_count, na.rm = TRUE),
+  min_trigger_count = min(dog_trigger_count, na.rm = TRUE),
+  max_trigger_count = max(dog_trigger_count, na.rm = TRUE))
+
+# visual
+## barplot: any trigger
+ggplot(df_bite, aes(x = factor(
+  dog_trigger_any,
+  levels = c(FALSE, TRUE),
+  labels = c("No trigger identified", "Trigger identified")))) +
+  geom_bar() + labs(
+    title = "Bite Triggers Identified",
+    x = "Trigger reported",
+    y = "n") +
+  theme_minimal()
+
+## barplot: number of trigger categories
+df_bite %>% count(dog_trigger_count, name = "n") %>% 
+  ggplot(aes(x = factor(dog_trigger_count), y = n)) +
+  geom_col() +
+  labs(
+    title = "Number of Bite Trigger Categories",
+    x = "Number of trigger categories",
+    y = "n") +
+  theme_minimal()
+
+## barplot: specific trigger categories
+dog_trigger_cols <- names(df_bite) %>% 
+  stringr::str_subset("^triggered_bite__") %>% 
+  setdiff(c(
+    "triggered_bite__other",
+    "triggered_bite__other_clean"))
+
+df_bite %>% 
+  summarise(across(all_of(
+    dog_trigger_cols),
+    ~ sum(.x == TRUE, 
+          na.rm = TRUE))) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "trigger",
+    values_to = "n") %>% 
+  mutate(
+    trigger = trigger %>% 
+      stringr::str_remove("^triggered_bite__") %>% 
+      stringr::str_replace_all("_", " ") %>% 
+      stringr::str_to_sentence()) %>% 
+  arrange(n) %>% 
+  ggplot(aes(x = reorder(trigger, n), y = n)) +
+  geom_col() + coord_flip() + labs(
+    title = "Specific Bite Triggers Reported",
+    x = "Trigger",
+    y = "n") +
+  theme_minimal()
+```
+
+## Bite severity
+
+bite_severity
+
+```{r bite-severity}
+# inspect 
+df_bite %>% count(bite_severity, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1)) %>% 
+  arrange(bite_severity)
+
+# summary table 
+df_bite %>% summarise(
+  n = sum(!is.na(bite_severity)),
+  n_missing = sum(is.na(bite_severity)),
+  mean = mean(bite_severity, na.rm = TRUE),
+  median = median(bite_severity, na.rm = TRUE),
+  min = min(bite_severity, na.rm = TRUE),
+  max = max(bite_severity, na.rm = TRUE))
+
+# visual
+## barplot
+df_bite %>% count(bite_severity, name = "n") %>% 
+  ggplot(aes(x = factor(bite_severity), y = n)) +
+  geom_col() + labs(
+    x = "Bite severity score",
+    y = "n",
+    title = "Distribution of bite severity")
+```
+
+## Dog personality
+
+dog_personality_any, \_count
+
+```{r dog-personality}
+# inspect
+df_bite %>% count(dog_personality_any, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1))
+
+df_bite %>% count(dog_personality_count, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1)) %>% 
+  arrange(dog_personality_count)
+
+# summary table
+df_bite %>% summarise(
+  n = n(),
+  n_dog_personality_any = sum(dog_personality_any == TRUE, na.rm = TRUE),
+  pct_dog_personality_any = round(mean(
+    dog_personality_any == TRUE, na.rm = TRUE) * 100, 1),
+  mean_dog_personality_count = mean(
+    dog_personality_count, na.rm = TRUE),
+  median_dog_personality_count = median(
+    dog_personality_count, na.rm = TRUE),
+  sd_dog_personality_count = sd(
+    dog_personality_count, na.rm = TRUE),
+  min_dog_personality_count = min(
+    dog_personality_count, na.rm = TRUE),
+  max_dog_personality_count = max(
+    dog_personality_count, na.rm = TRUE))
+
+# visual
+## barplot: any dog personality trait
+ggplot(df_bite, aes(x = factor(
+  dog_personality_any,
+  levels = c(FALSE, TRUE),
+  labels = c("No trait endorsed", "Trait endorsed")))) +
+  geom_bar() + labs(
+    title = "Dog Personality Traits Endorsed",
+    x = "Any dog personality trait",
+    y = "n") +
+  theme_minimal()
+
+## barplot: number of dog personality traits
+df_bite %>% count(dog_personality_count, name = "n") %>% 
+  ggplot(aes(x = factor(dog_personality_count), y = n)) +
+  geom_col() + labs(
+    title = "Number of Dog Personality Traits Endorsed",
+    x = "Number of dog personality traits",
+    y = "n") +
+  theme_minimal()
+
+## barplot: specific dog personality traits
+dog_personality_cols <- names(df_bite) %>% 
+  stringr::str_subset("^dog_personality__") %>% 
+  setdiff(c(
+    "dog_personality__other",
+    "dog_personality__other_clean"))
+
+df_bite %>% 
+  summarise(across(
+    all_of(dog_personality_cols),
+    ~ sum(.x == TRUE, na.rm = TRUE))) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "dog_personality",
+    values_to = "n") %>% 
+  mutate(
+    dog_personality = dog_personality %>% 
+      stringr::str_remove("^dog_personality__") %>% 
+      stringr::str_replace_all("_", " ") %>% 
+      stringr::str_to_sentence()) %>% 
+  arrange(n) %>% 
+  ggplot(aes(x = reorder(dog_personality, n), y = n)) +
+  geom_col() +  coord_flip() + labs(
+    title = "Specific Dog Personality Traits Reported",
+    x = "Dog personality trait",
+    y = "n") +
+  theme_minimal()
+```
+
+## Child personality
+
+child_personality_any, \_count
+
+```{r child-personality}
+# inspect
+df_bite %>% count(child_personality_any, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1))
+
+df_bite %>% count(child_personality_count, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1)) %>% 
+  arrange(child_personality_count)
+
+# summary table
+df_bite %>% summarise(
+  n = n(),
+  n_child_personality_any = sum(
+    child_personality_any == TRUE, na.rm = TRUE),
+  pct_child_personality_any = round(mean(
+    child_personality_any == TRUE, na.rm = TRUE) * 100, 1),
+  mean_child_personality_count = mean(
+    child_personality_count, na.rm = TRUE),
+  median_child_personality_count = median(
+    child_personality_count, na.rm = TRUE),
+  sd_child_personality_count = sd(
+    child_personality_count, na.rm = TRUE),
+  min_child_personality_count = min(
+    child_personality_count, na.rm = TRUE),
+  max_child_personality_count = max(
+    child_personality_count, na.rm = TRUE))
+
+# visual
+## barplot: any child personality trait
+ggplot(df_bite, aes(x = factor(
+  child_personality_any,
+  levels = c(FALSE, TRUE),
+  labels = c("No trait endorsed", "Trait endorsed")))) +
+  geom_bar() + labs(
+    title = "Child Personality Traits Endorsed",
+    x = "Any child personality trait",
+    y = "n") +
+  theme_minimal()
+
+## barplot: number of child personality traits
+df_bite %>% count(child_personality_count, name = "n") %>% 
+  ggplot(aes(x = factor(child_personality_count), y = n)) +
+  geom_col() + labs(
+    title = "Number of Child Personality Traits Endorsed",
+    x = "Number of child personality traits",
+    y = "n") +
+  theme_minimal()
+
+## barplot: specific child personality traits
+child_personality_cols <- names(df_bite) %>% 
+  stringr::str_subset("^personality_at_bite__") %>% 
+  setdiff(c(
+    "personality_at_bite__other",
+    "personality_at_bite__other_clean"))
+
+df_bite %>% 
+  summarise(across(
+    all_of(child_personality_cols),
+    ~ sum(.x == TRUE, na.rm = TRUE))) %>% 
+  pivot_longer(
+    everything(),
+    names_to = "child_personality",
+    values_to = "n") %>% 
+  mutate(
+    child_personality = child_personality %>% 
+      stringr::str_remove("^personality_at_bite__") %>% 
+      stringr::str_replace_all("_", " ") %>% 
+      stringr::str_to_sentence()) %>% 
+  arrange(n) %>% 
+  ggplot(aes(x = reorder(child_personality, n), y = n)) +
+  geom_col() + coord_flip() + labs(
+    title = "Specific Child Personality Traits Reported",
+    x = "Child personality trait",
+    y = "n") +
+  theme_minimal()
+```
+
+## Approach direction
+
+approach_direction
+
 ```{r approach-direction}
 df_bite <- df_bite %>% mutate(
-  child_action_category = as.character(child_action_category),
-  child_action_category = case_when(
-    child_action_category == "child_approached_dog" ~ "child_approached_dog",
-    child_action_category == "dog_approached_child" ~ "dog_approached_child",
-    child_action_category == "mutual_approach" ~ "mutual_approach",
-    child_action_category == "unknown" ~ "unknown",
+  approach_direction = as.character(approach_direction),
+  approach_direction = case_when(
+    approach_direction == "child_approached_dog" ~ "child_approached_dog",
+    approach_direction == "dog_approached_child" ~ "dog_approached_child",
+    approach_direction == "mutual_approach" ~ "mutual_approach",
+    approach_direction == "unknown" ~ "unknown",
     TRUE ~ NA_character_),
-  child_action_category = factor(
-    child_action_category, levels = c(
+  approach_direction = factor(
+    approach_direction, levels = c(
       "child_approached_dog",
       "dog_approached_child",
       "mutual_approach",
       "unknown")))
 
+# inspect
+df_bite %>% count(approach_direction, name = "n") %>% 
+  mutate(prop = n / sum(n),
+         pct = scales::percent(prop, accuracy = 0.1))
+
 # visual
-ggplot(df_bite, aes(
-  x = child_action_category,
-  fill = factor(bite_severity_clean))) + 
-  geom_bar(position = "stack", na.rm = TRUE) +
+## barplot: approach direction
+ggplot(df_bite, aes(x = approach_direction)) +
+  geom_bar() +
   scale_x_discrete(
     drop = FALSE,
     labels = c(
       child_approached_dog = "Child approached dog",
       dog_approached_child = "Dog approached child",
       mutual_approach = "Mutual approach",
-      unknown = "Unknown")) +
-  labs(
-    title = "Bite Severity by Approach Direction",
-    x = "Approach Direction",
-    y = "Count",
-    fill = "Severity") +
+      unknown = "Unknown")) + labs(
+        title = "Approach Direction Prior to Bite",
+        x = "Approach direction",
+        y = "n") +
+  theme_minimal()
+
+## stacked barplot: bite severity by approach direction
+df_bite %>% 
+  filter(!is.na(approach_direction), !is.na(bite_severity)) %>% 
+  ggplot(aes(
+    x = approach_direction,
+    fill = factor(bite_severity))) + 
+  geom_bar(position = "stack") +
+  scale_x_discrete(
+    drop = FALSE,
+    labels = c(
+      child_approached_dog = "Child approached dog",
+      dog_approached_child = "Dog approached child",
+      mutual_approach = "Mutual approach",
+      unknown = "Unknown")) + labs(
+        title = "Bite Severity by Approach Direction",
+        x = "Approach direction",
+        y = "n",
+        fill = "Severity") + 
   theme_minimal()
 ```
 
+# Associations
+
 ## warning signs and bite severity
+
 ```{r warning-signals}
 df_bite %>% count(dog_warning_any, bite_severity_clean)
 
@@ -493,12 +826,13 @@ ggplot(df_bite,
 ```
 
 ## approach direction x warning signals
+
 ```{r}
-df_bite %>% count(child_action_category, dog_warning_any)
+df_bite %>% count(approach_direction, dog_warning_any)
 
 # visual 
 ggplot(df_bite, aes(
-  x = child_action_category,
+  x = approach_direction,
   fill = dog_warning_any)) +
   geom_bar(position = "fill") + 
   scale_y_continuous(labels = scales::percent) +
@@ -521,19 +855,19 @@ ggplot(df_bite, aes(
 
 # define warning rate
 warning_summary <- df_bite %>%
-  group_by(child_action_category) %>%
+  group_by(approach_direction) %>%
   summarise(
     warning_rate = mean(dog_warning_any, na.rm = TRUE),
     n = n())
 
 # visual
 ggplot(warning_summary, aes(
-  x = child_action_category,
+  x = approach_direction,
   y = warning_rate)) +
   geom_point(size = 4) +
   geom_segment(aes(
-    x = child_action_category,
-    xend = child_action_category,
+    x = approach_direction,
+    xend = approach_direction,
     y = 0,
     yend = warning_rate)) +
   scale_y_continuous(
@@ -552,6 +886,7 @@ ggplot(warning_summary, aes(
 ```
 
 ## child age x severity
+
 ```{r}
 df_bite %>% group_by(bite_severity_clean) %>% 
   summarise(
@@ -578,6 +913,7 @@ ggplot(df_bite, aes(
 ```
 
 ## child age x warning signals
+
 ```{r}
 # summary table
 df_bite %>%
@@ -612,6 +948,7 @@ ggplot(df_bite,
 ```
 
 ## dog age x severity
+
 ```{r}
 # summary table
 df_bite %>%
@@ -639,6 +976,9 @@ ggplot(df_bite, aes(
     y = "Dog Age (Years)") +
   theme_minimal()
 ```
+
+## approach direction x warning signals
+
 ```{r dog-age-x-warning}
 ## dog age x warning signs 
 # summary table
@@ -671,9 +1011,10 @@ ggplot(df_bite, aes(
   theme_minimal()
 ```
 
+## Dog sex x severity
 
-```{r dog-gender-x-severity}
-## dog gender x severity
+```{r dog-sex-x-severity}
+## dog sex x severity
 # counts
 df_bite %>% count(dog_sex_std, bite_severity_clean)
 
@@ -691,10 +1032,14 @@ ggplot(df_bite, aes(
     y = "Count",
     fill = "Severity") +
   theme_minimal()
+
+
 ```
 
-```{r dog-gender-signal}
-## dog gender x signals
+## Dog sex x warning signal
+
+```{r dog-sex-signal}
+## dog sex x signals
 # counts
 df_bite %>% count(dog_sex_std, dog_warning_any)
 
@@ -717,10 +1062,3 @@ ggplot(df_bite, aes(
     fill = "Warning Signal") +
   theme_minimal()
 ```
-
-## breed x warning signal
-
-## breed type x severity
-
-### MISSING data on what age the dog was when they started living in their current home
-
