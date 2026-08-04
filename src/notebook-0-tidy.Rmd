@@ -2,8 +2,8 @@
 title: "Building Tidy Data"
 date: "`r Sys.Date()`"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,8 +13,7 @@ knitr::opts_chunk$set(echo=TRUE)
 
 # Overview
 
-This notebook serves as reference for the tidying procedures used to prepare the
-study data for analysis.
+This notebook serves as reference for the tidying procedures used to prepare the study data for analysis.
 
 # Form the Data Frame
 
@@ -30,8 +29,7 @@ df <- readr::read_csv('../data/dogs-and-children-survey.csv')
 stopifnot(identical(dim(df)+0, c(192, 676)))
 ```
 
-We update the data frame column names to be more friendly to work with during
-analysis.
+We update the data frame column names to be more friendly to work with during analysis.
 
 ```{r}
 # Apply analysis friendly column names.
@@ -55,18 +53,1012 @@ df <- df %>%
 stopifnot(identical(dim(df)+0, c(192, 669)))
 ```
 
-# Save the Tidy Data    
-    
-Save the data to a file in the data directory using RDS format so that the data    
-types are stored and the resulting file is compressed.    
-    
+# Save the Tidy Data
+
+Save the data to a file in the data directory using RDS format so that the data\
+types are stored and the resulting file is compressed.
+
 ```{r}
-saveRDS(df, '../data/tidy.Rds')    
-```  
+saveRDS(df, '../data/tidy.Rds')   
+
+```
 
 # Display Session Info
 
 ```{r}
-utils::sessionInfo()
+sessionInfo()
 ```
 
+# Load Packages
+
+```{r packages}
+library(tidyverse)
+```
+
+# Load data
+
+Load the tidy data from previous session.
+
+```{r load-tidy-data}
+df <- readRDS("../data/tidy.Rds")
+stopifnot(nrow(df) == 192)
+```
+
+## Household identifier
+
+Create household id to identify multiple submissions.
+
+```{r "household-id"}
+if (!"household_id" %in% names(df)) {
+  df <- df %>% 
+    mutate(household_id = 
+             dplyr::coalesce(network_id, owner_id) %>% 
+             stringr::str_to_lower() %>% 
+             stringr::str_trim())}
+
+# total number of responses
+nrow(df)
+
+# submissions per house
+df %>%  
+  count(household_id, name = "n_submissions") %>%
+  pull(n_submissions) %>% 
+  summary()
+
+# number of households with multiple submissions
+df %>%  
+  count(household_id, name = "n_submissions") %>%
+  summarise(n_multi_submit = sum(n_submissions > 1))
+
+# number of responses reporting at least one bite
+df %>% summarise(n_child_bite = sum(
+  has_child_been_bitten == 1, na.rm = TRUE))
+
+# bite-exists household
+df %>% group_by(household_id) %>% summarise(
+  bite_present = any(
+    has_child_been_bitten == 1, na.rm = TRUE)) %>% 
+  summarise(n_household_bite = sum(bite_present))
+```
+
+## Bite flag
+
+Create bite flag object.
+
+```{r bite-flag}
+df <- df %>% mutate(
+    incident_present = 
+      !is.na(child_id) |
+      !is.na(child_age_at_bite) |
+      !is.na(desc_action_prior_to_bite) |
+      if_any(starts_with("bite_location__"),
+             ~ !is.na(.x)  & stringr::str_squish(
+               as.character(.x)) != "")) %>%
+  mutate(bite_flag = case_when(
+    has_child_been_bitten == 1 ~ TRUE,
+    has_child_been_bitten == 0 ~ FALSE,
+    incident_present ~ TRUE, 
+    TRUE ~ NA),
+    bite_flag_correct = case_when(
+      child_cnt == 0 ~ NA, # households without children
+      !is.na(bite_flag) ~ bite_flag,
+      TRUE ~ FALSE))
+  
+# checks
+
+df %>% count(has_child_been_bitten, bite_flag, bite_flag_correct)
+
+df %>% summarise(n_total = n(),
+                 n_bite_flag_correct = sum(bite_flag_correct, na.rm = TRUE), 
+                 n_incident_present = sum(incident_present, na.rm = TRUE),
+                 n_children_bitten = sum(has_child_been_bitten == 1, na.rm = TRUE))
+```
+
+## Check duplicate submissions
+
+Create household groups to separate multiple submissions: one row per household.
+
+```{r household-summary}
+household_summary <- df %>%  
+  group_by(household_id) %>% 
+  summarise(n_household_submissions = n(),
+            n_bite_rows = sum(bite_flag_correct, na.rm = TRUE),
+            .groups = "drop")
+
+summary(household_summary$n_household_submissions)
+
+household_summary %>% count(n_household_submissions, sort = TRUE)
+
+household_summary %>% summarise(
+  n_duplicate_households = sum(n_household_submissions > 1))
+```
+
+## Create "df_tidy"
+
+Remove duplicate submissions
+
+```{r remove-duplicates}
+df_tidy <- df %>% 
+  arrange(household_id) %>% 
+  group_by(household_id) %>% 
+  slice(1) %>% 
+  ungroup()
+
+# check 
+nrow(df)
+nrow(df_tidy)
+
+df_tidy %>% 
+  count(household_id, name = "n_household_submissions") %>% 
+  summarise(max_household_submissions = max(n_household_submissions))
+```
+
+# Variables
+
+## Child count
+
+```{r child-count}
+# character to numeric
+df_tidy <- df_tidy %>% 
+  mutate(child_cnt_raw = as.character(child_cnt), 
+         child_cnt_raw = str_to_lower(str_trim(child_cnt_raw)),
+         child_cnt = case_when(
+           child_cnt_raw %in% c("", "na", "n/a") ~ NA_real_,
+           child_cnt_raw %in% c("none", "zero", "0") ~ 0,
+           child_cnt_raw %in% c("one", "1") ~ 1,
+           child_cnt_raw %in% c("two", "2") ~ 2,
+           child_cnt_raw %in% c("three", "3") ~ 3,
+           child_cnt_raw %in% c("four", "4") ~ 4,
+           child_cnt_raw %in% c("five", "5") ~ 5,
+           TRUE ~suppressWarnings(as.numeric(child_cnt_raw))))
+
+# check
+df_tidy %>% count(child_cnt, sort = TRUE)
+
+# confirm non-child rows are empty
+df_tidy %>% filter(child_cnt == 0) %>% 
+  summarise(n_household_submissions = n(),
+            n_child_age = sum(!is.na(child_age_at_bite)),
+            n_child_id = sum(!is.na(child_id)),
+            n_dog_sex = sum(!is.na(dog_sex)))
+```
+
+## Non-child rows
+
+eliminate missingness
+
+```{r no-children}
+df_no_child <- df_tidy %>% filter(child_cnt == 0)
+
+df_child <- df_tidy %>% filter(child_cnt > 0)
+
+# check
+nrow(df_tidy)
+nrow(df_no_child)
+nrow(df_child)
+
+df_child %>% count(child_cnt, sort = TRUE) # now we use "df_child"
+```
+
+## Bite-only dataframe
+
+Create a dataframe for all bite incidents
+
+```{r df-bites}
+df_bite <- df_child %>% 
+  filter(bite_flag_correct == TRUE)
+
+# check
+nrow(df_child)
+nrow(df_bite)
+
+df_bite %>% 
+  count(bite_flag_correct, sort = TRUE)
+```
+
+# Demographic Standardization
+
+Standardize child count, bite flag, child and dog age, child gender, and create a neuter status variable.
+
+## Child age
+
+Convert to months and years.
+
+```{r child-age}
+# see all raw ages
+df_bite %>% count(child_age_at_bite, sort = TRUE) %>% 
+  print(n = 100)
+
+df_bite <- df_bite %>% 
+  mutate(
+    child_age_raw = str_to_lower(str_squish(as.character(child_age_at_bite))),
+    child_age_num = readr::parse_number(child_age_raw),
+    child_age_months = case_when(
+      is.na(child_age_raw) | child_age_raw == "" ~ NA_real_,
+      str_detect(child_age_raw, "month|months|mo\\b") ~ child_age_num,
+      str_detect(child_age_raw, "year|years|yr\\b|yo\\b") ~ child_age_num * 12,
+      str_detect(child_age_raw, "^around\\s*[0-9]") ~ child_age_num * 12,
+      child_age_raw %in% as.character(0:18) ~ child_age_num *12,
+      str_detect(child_age_raw, "^[0-9]+\\.[0-9]+$") ~ child_age_num * 12,
+                              TRUE ~ NA_real_),
+    child_age_years = child_age_months / 12)
+
+# check
+df_bite %>%
+  count(child_age_at_bite, child_age_months, sort = TRUE)
+
+# drop columns
+df_bite <- df_bite %>% select(-child_age_raw, -child_age_num)
+
+# summary
+df_bite %>% select(child_age_months, child_age_years) %>% summary()
+
+class(df_bite$child_age_months) 
+class(df_bite$child_age_years) # both numeric
+```
+
+## Child gender
+
+Standardize character values.
+
+```{r child-gender}
+df_bite <- df_bite %>% mutate(child_sex_raw = str_to_lower(str_squish(child_sex)),
+                            child_gender_std = case_when(is.na(child_sex_raw) | child_sex_raw == "" ~ NA_character_,
+                                                               child_sex_raw %in% c("female", "f", "girl", "woman") ~ "Female",
+                                                               child_sex_raw %in% c("male", "boy", "man") ~ "Male",
+                                                               str_detect(child_sex_raw, "non[- ]?binary|nb\\b|genderqueer|trans|other") ~ "Other/Nonbinary",
+                                                               str_detect(child_sex_raw, "prefer not|prefer not to say|decline") ~ "Prefer not to say",
+                                                               TRUE ~ "Needs review"))
+# check
+df_bite %>% 
+  count(child_gender_std, sort = TRUE)
+
+# verify Needs review
+df_bite %>% 
+  filter(child_gender_std == "Needs review") %>% 
+  count(child_sex_raw, sort = TRUE)
+
+# remove columns
+df_bite <- df_bite %>%  
+  select(-child_sex_raw)
+
+class(df_bite$child_gender_std) # character
+```
+
+## Dog age
+
+Convert to months and years.
+
+```{r dog-age}
+# inspect raw values
+df_bite %>% count(dog_age_at_bite, sort = TRUE) %>% 
+  print(n = 100)
+
+df_bite <- df_bite %>% 
+  mutate(
+    dog_age_raw = str_to_lower(str_squish(as.character(dog_age_at_bite))),
+    dog_age_num = readr::parse_number(dog_age_raw),
+    dog_age_months = case_when(
+      is.na(dog_age_raw) | dog_age_raw == "" ~ NA_real_,
+      str_detect(dog_age_raw, "month|months|mo\\b") ~ dog_age_num, # months
+      str_detect(dog_age_raw, "year|years|yr\\b|yrs\\b|yo\\b") ~ dog_age_num * 12, # years
+      str_detect(dog_age_raw, "^around\\s*[0-9]") ~ dog_age_num * 12, 
+      dog_age_raw %in% as.character(0:30)~ dog_age_num *12,
+      str_detect(dog_age_raw, "^[0-9]+\\.[0-9]+$") ~ dog_age_num * 12,
+      TRUE ~ NA_real_),
+    dog_age_years = dog_age_months / 12)
+
+# check
+df_bite %>%
+  count(dog_age_at_bite, dog_age_months, sort = TRUE)
+
+# drop cols
+df_bite <- df_bite %>% 
+  select(-dog_age_raw, - dog_age_num)
+
+# summary
+df_bite %>% select(dog_age_months, dog_age_years) %>% 
+  summary()
+
+class(df_bite$dog_age_months) 
+class(df_bite$dog_age_years) # numeric
+```
+
+## Dog sex/neuter status
+
+Inspect dog gender to formalize dog_neuter status variable.
+
+```{r neuter-status}
+# inspect raw values 
+df_bite %>% 
+  count(dog_sex, sort = TRUE)
+
+# create variable for sterilization
+df_bite <- df_bite %>% 
+  mutate(
+    dog_sex_raw = str_to_lower(str_squish(dog_sex)),
+    dog_sex_std = case_when(
+      is.na(dog_sex_raw) | dog_sex_raw == "" ~ NA_character_,
+      str_detect(dog_sex_raw, "\\bfemale\\b") ~ "Female",
+      str_detect(dog_sex_raw, "\\bmale\\b") ~ "Male",
+      TRUE ~ "Needs review"),
+    dog_neuter = case_when(
+      is.na(dog_sex_raw) | dog_sex_raw == "" ~ NA,
+      str_detect(dog_sex_raw, "spayed|neutered") ~ TRUE,
+      dog_sex_raw %in% 
+        c("male", "female") ~ FALSE, TRUE ~ NA))
+                                           
+# check
+df_bite %>%  count(dog_sex, dog_sex_std, dog_neuter, sort = TRUE)
+
+df_bite %>% 
+  filter(dog_sex_std == "Needs review") %>% 
+  count(dog_sex_raw, sort = TRUE)
+
+class(df_bite$dog_neuter) # logical
+
+# drop cols
+df_bite <- df_bite %>% 
+  select(-dog_sex_raw)
+```
+
+# Column standardization
+
+Identify and save survey items with multiple checkbox items.
+
+```{r checkbox-cols}
+
+# All checkbox items
+checkbox_cols <- names(df_bite)[str_detect(names(df_bite), "__")]
+
+# "Other" write-in items
+checkbox_other <- checkbox_cols[str_detect(
+  checkbox_cols,
+  "__other($|_)|other_text|specify|describe")]
+
+# save and convert selected checkbox columns to logical
+checkbox_logical <- setdiff(checkbox_cols, checkbox_other)
+
+# check
+checkbox_cols
+checkbox_other
+checkbox_logical
+```
+
+## Checkbox variables
+
+convert checkbox items to logical (T/F).
+
+```{r checkbox-conversion}
+# unchecked = FALSE; checked = TRUE
+df_bite <- df_bite %>%
+  mutate(across(all_of(checkbox_logical), ~{
+    x <- .x
+    if (is.logical(x)) { 
+      replace(x, is.na (x), FALSE)
+      } else if (is.numeric(x) || is.integer(x)) {
+        case_when(
+          x == 1 ~ TRUE,
+          x == 0 ~ FALSE,
+          is.na(x) ~ FALSE,
+          TRUE ~ FALSE)
+        } else if (is.character(x)) {
+          x2 <- str_squish(as.character(x))
+          case_when(
+            is.na(x2) | x2 == "" ~ FALSE,
+            TRUE ~ TRUE )
+          } else { 
+            FALSE }})) # all others
+
+# retain write-in "other" response as character string
+df_bite <- df_bite %>% mutate(across(all_of(checkbox_other), ~{
+    x <- str_squish(as.character(.x))
+    na_if(x, "")}))
+
+# check
+table(sapply(df_bite[checkbox_logical], class))
+table(sapply(df_bite[checkbox_other], class))
+
+df_bite %>% count(triggered_bite__hugged_the_dog, sort = TRUE)
+
+# check logical missingness
+df_bite %>% summarise(across(starts_with(
+  "dog_behavior_prior_to_bite__"),
+  ~ paste(unique(as.character(.x)), 
+          collapse = " | "))) %>%
+  print(width = Inf)
+
+df_bite %>% summarise(across(starts_with(
+  "dog_behavior_prior_to_bite__"),
+  ~ sum(.x == TRUE, na.rm = TRUE))) %>%
+  pivot_longer(everything(),
+               names_to = "warning_item",
+               values_to = "n_true") %>%
+  arrange(desc(n_true))
+
+dog_warning_cols <- names(df_bite) %>%
+  stringr::str_subset("^dog_behavior_prior_to_bite__")
+
+# convert true to logical
+df_bite <- df_bite %>% mutate(across(all_of(setdiff(
+  dog_warning_cols, 
+  "dog_behavior_prior_to_bite__other")),
+  ~ tidyr::replace_na(.x, FALSE)),
+  dog_warning__other_clean = stringr::str_to_lower(
+    stringr::str_squish(
+      dog_behavior_prior_to_bite__other)),
+  dog_behavior_prior_to_bite__none = if_else(str_detect(
+    dog_warning__other_clean, 
+    "didn.?t see|did not see|alone|no warning|no forewarning|without warning"), 
+    TRUE,
+    dog_behavior_prior_to_bite__none))
+
+# re-build columns 
+dog_warning_cols <- dog_warning_cols %>% setdiff(c(
+  "dog_behavior_prior_to_bite__none",
+  "dog_behavior_prior_to_bite__other"))
+
+df_bite <- df_bite %>% mutate(dog_warning_any = if_any(all_of(
+  dog_warning_cols),
+    ~ .x == TRUE),
+  dog_warning_none = dog_behavior_prior_to_bite__none == TRUE,
+  dog_warning_count = rowSums(across(all_of(
+    dog_warning_cols), 
+    ~ as.numeric(.x)),
+    na.rm = TRUE))
+
+# check
+names(df_bite)[startsWith(names(df_bite), 
+                          "dog_behavior_prior_to_bite__")] %in% checkbox_logical
+```
+
+## Check variables
+
+List all variables.
+
+```{r identify-variables}
+
+df_bite %>% select(where(~ !is.logical(.))) %>% names()
+```
+
+# Build columns
+
+Build logical columns of behavioral variables.
+
+## dog warning
+
+Build dog_warning_any, \_none, \_count variables.
+
+```{r dog-warning}
+# categorize "others" 
+df_bite <- df_bite %>% mutate(
+  dog_warning__other_clean = stringr::str_to_lower(
+    stringr::str_squish(dog_behavior_prior_to_bite__other)),
+  dog_behavior_prior_to_bite__air_snapped = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "air snap|snapped|snap"),
+    TRUE, 
+    dog_behavior_prior_to_bite__air_snapped,
+    missing = dog_behavior_prior_to_bite__air_snapped),
+  dog_behavior_prior_to_bite__bared_teeth_lifted_lips = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "bared teeth|showed teeth|lifted lips|lip"),
+    TRUE,
+    dog_behavior_prior_to_bite__bared_teeth_lifted_lips,
+    missing = dog_behavior_prior_to_bite__bared_teeth_lifted_lips),
+  dog_behavior_prior_to_bite__barked = if_else(
+    stringr::str_detect(dog_warning__other_clean,
+                        "bark|barked|barking"),
+    TRUE,
+    dog_behavior_prior_to_bite__barked,
+    missing = dog_behavior_prior_to_bite__barked),
+  dog_behavior_prior_to_bite__cowered_away = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "cower|cowered|backed away|moved away|retreated|hid"),
+    TRUE,
+    dog_behavior_prior_to_bite__cowered_away,
+    missing = dog_behavior_prior_to_bite__cowered_away),
+  dog_behavior_prior_to_bite__growled = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "growl|growled|growling"),
+    TRUE,
+    dog_behavior_prior_to_bite__growled,
+    missing = dog_behavior_prior_to_bite__growled), 
+  dog_behavior_prior_to_bite__lunged = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "lunge|lunged|charged"),
+    TRUE,
+    dog_behavior_prior_to_bite__lunged,
+    missing = dog_behavior_prior_to_bite__lunged),
+  dog_behavior_prior_to_bite__raised_hackles = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "hackles|hair raised|raised hair"),
+    TRUE,
+    dog_behavior_prior_to_bite__raised_hackles,
+    missing = dog_behavior_prior_to_bite__raised_hackles),
+  dog_behavior_prior_to_bite__tucked_tail = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "tucked tail|tail tucked"),
+    TRUE,
+    dog_behavior_prior_to_bite__tucked_tail,
+    missing = dog_behavior_prior_to_bite__tucked_tail),
+  dog_behavior_prior_to_bite__whale_eye = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "whale eye|side eye|showing whites|white of"),
+    TRUE,
+    dog_behavior_prior_to_bite__whale_eye,
+    missing = dog_behavior_prior_to_bite__whale_eye),
+  dog_behavior_prior_to_bite__none = if_else(
+    stringr::str_detect(dog_warning__other_clean, 
+                        "no warning|no forewarning|without warning|none"),
+    TRUE,
+    dog_behavior_prior_to_bite__none,
+    missing = dog_behavior_prior_to_bite__none))
+
+# re-build columns
+dog_warning_cols <- dog_warning_cols %>% 
+  setdiff(c("dog_behavior_prior_to_bite__none", "dog_behavior_prior_to_bite__other"))
+
+# inspect
+dog_warning_cols
+
+# variable summary
+df_bite <- df_bite %>% mutate(
+  dog_warning_any = if_any(all_of(dog_warning_cols), ~ .x == TRUE),
+  dog_warning_none = dog_behavior_prior_to_bite__none == TRUE,
+  dog_warning_count = rowSums(across(all_of(
+    dog_warning_cols), 
+    ~ as.numeric(.x)),
+    na.rm = TRUE))
+
+# check
+df_bite %>% count(dog_warning_any)
+
+df_bite %>% count(dog_warning_count)
+
+df_bite %>% summarise(across(all_of(
+  dog_warning_cols), 
+  ~ sum(.x, 
+        na.rm = TRUE))) %>%
+  pivot_longer(
+    everything(),
+    names_to = "dog_warning",
+    values_to = "count") %>% 
+  arrange(desc(count))
+```
+
+## dog triggers
+
+Build dog_trigger_any, \_none, \_count variables.
+
+```{r dog-triggers}
+# categorize others
+df_bite <- df_bite %>% mutate(
+  triggered_bite__other_clean = 
+    stringr::str_to_lower(stringr::str_squish(triggered_bite__other)),
+  triggered_bite__pet_legs_paws = if_else(
+    str_detect(triggered_bite__other_clean, 
+               "leg|foot|paw"),
+    TRUE,
+    triggered_bite__pet_legs_paws),
+  triggered_bite__approached_dog_while_eating = if_else(
+    str_detect(triggered_bite__other_clean, 
+               "food|pizza|bread|treat|eating"),
+    TRUE,
+    triggered_bite__approached_dog_while_eating),
+  triggered_bite__approached_dog_while_sleeping = if_else(
+    str_detect(triggered_bite__other_clean,
+               "sleep|sleeping|middle of night"),
+    TRUE,
+    triggered_bite__approached_dog_while_sleeping),
+  triggered_bite__stepped_fell_on_dog = if_else(
+    str_detect(triggered_bite__other_clean, 
+               "stomped|stepped|fell|fall|knocking over"),
+    TRUE,
+    triggered_bite__stepped_fell_on_dog),
+  triggered_bite__child_running = if_else(
+    str_detect(triggered_bite__other_clean, 
+               "running|ran"),
+    TRUE,
+    triggered_bite__child_running),
+  triggered_bite__ran_at_dog = if_else(
+    str_detect(triggered_bite__other_clean, 
+               "ran toward dog|ran at dog"),
+    TRUE,
+    triggered_bite__ran_at_dog),
+  triggered_bite__pet_head = if_else(
+    str_detect(triggered_bite__other_clean, "pet dog on head|head"),
+    TRUE,
+    triggered_bite__pet_head),
+  triggered_bite__no_obvious_trigger = if_else(
+    str_detect(triggered_bite__other_clean, "didn.?t see|did not see|no obvious"),
+    TRUE,
+    triggered_bite__no_obvious_trigger),
+  # New categories
+  triggered_bite__redirected_aggression = str_detect(
+    triggered_bite__other_clean,
+    "redirected|another dog"),
+  triggered_bite__resource_conflict = str_detect(
+    triggered_bite__other_clean,
+    "steal|take|treat|food|pizza|bread"),
+  triggered_bite__tight_space_trapped = str_detect(
+    triggered_bite__other_clean,
+    "tight spot|trapped|small space"),
+  triggered_bite__moved_dog = str_detect(
+    triggered_bite__other_clean,
+    "move dog|move the dog"),
+  triggered_bite__pet_back = str_detect(
+    triggered_bite__other_clean,
+    "pet dog.?s back|pet.*back"),
+  triggered_bite__face_close = str_detect(
+    triggered_bite__other_clean,
+    "face.*close|close to dog.?s face"),
+  triggered_bite__tail_pull = str_detect(
+    triggered_bite__other_clean,
+    "tail"),
+  triggered_bite__teasing = str_detect(
+    triggered_bite__other_clean,
+    "teasing|tease"),
+  triggered_bite__loud_or_high_pitch = str_detect(
+    triggered_bite__other_clean,
+    "high pitch|crying|screamed|baby crying"))
+
+# build trigger col
+dog_trigger_cols <- names(df_bite) %>%
+  stringr::str_subset("^triggered_bite__") %>% setdiff(c(
+    "triggered_bite__other",
+    "triggered_bite__other_clean"))
+
+df_bite <- df_bite %>% mutate(
+  dog_trigger_any = if_any(all_of(
+    dog_trigger_cols),
+    ~ .x == TRUE),
+  dog_trigger_count = rowSums(across(all_of(
+    dog_trigger_cols),
+    ~ as.numeric(.x)),
+    na.rm = TRUE))
+
+# check
+df_bite %>% count(dog_trigger_any)
+
+df_bite %>% count(dog_trigger_count)
+
+df_bite %>% summarise(across(all_of(
+  dog_trigger_cols),
+  ~ sum(.x, na.rm = TRUE))) %>% pivot_longer(everything(),
+                                             names_to = "dog trigger",
+                                             values_to = "count") %>%
+  arrange(desc(count))
+```
+
+## bite severity
+
+Build numeric bite_severity_num and bite_severity_clean to include recoded "other" values.
+
+```{r bite-severity}
+# inspect
+df_bite %>% count(bite_severity, sort = TRUE) %>%
+  print(n = Inf, width = Inf)
+
+df_bite <- df_bite %>% mutate(
+  bite_severity_num = stringr::str_extract(
+    bite_severity,
+    "(?<=Score )\\d") %>%
+    as.numeric())
+
+# checks
+df_bite %>%
+  count(bite_severity_num, sort = TRUE)
+
+df_bite %>%
+  select(bite_severity, bite_severity_num, bite_severity__other) %>%
+  filter(is.na(bite_severity_num) | !is.na(bite_severity__other)) %>%
+  print(n = Inf, width = Inf)
+
+# categorize "other"
+df_bite <- df_bite %>% mutate(
+  bite_severity_other_recoded = case_when(
+    str_detect(
+      bite_severity__other,
+      "puncture|laceration") ~ 3,
+    str_detect(
+      bite_severity__other,
+      "no mark on the skin|no visible injury|clothes") ~ 1,
+    TRUE ~ NA_real_),
+  bite_severity_clean = coalesce(
+    bite_severity_num,
+    bite_severity_other_recoded))
+
+# check 
+df_bite %>% count(bite_severity_clean, sort = TRUE)
+
+df_bite %>% select(
+  bite_severity,
+  bite_severity__other,
+  bite_severity_num,
+  bite_severity_other_recoded,
+  bite_severity_clean) %>%
+  filter(!is.na(bite_severity__other) | is.na(bite_severity_clean)) %>%
+  print(n = Inf, width = Inf)
+
+# remove helper
+df_bite <- df_bite %>% mutate(bite_severity = bite_severity_clean) %>%
+  select(-bite_severity_num, -bite_severity_other_recoded, -bite_severity_clean)
+```
+
+## dog personality
+
+Build dog_personality_any (logical) and dog_personality_count (numeric).
+
+```{r dog-personality}
+# inspect "other"
+df_bite %>% filter(!is.na(dog_personality__other)) %>% select(
+  dog_personality__other) %>% distinct() %>%
+  print(n = Inf, width = Inf)
+
+# existing categories
+dog_personality_cols
+
+# include others in new categories
+df_bite <- df_bite %>% mutate(
+  dog_personality__other_clean = 
+    str_to_lower(str_squish(dog_personality__other)),
+  dog_personality__newly_adopted = str_detect(
+    dog_personality__other_clean,
+    "first day|hadn.?t had|rescued|bad situation"),
+  dog_personality__work_focused = str_detect(
+    dog_personality__other_clean,
+    "work minded|working"),
+  dog_personality__cognitive_decline = str_detect(
+    dog_personality__other_clean,
+    "dementia"),
+  dog_personality__dog_selective = str_detect(
+    dog_personality__other_clean,
+    "dog selective"))
+
+
+dog_personality_cols <- names(df_bite) %>%
+  stringr::str_subset("^dog_personality__") %>%
+  setdiff(c("dog_personality__other", "dog_personality__other_clean"))
+
+# check
+dog_personality_cols
+
+# build summary variables
+df_bite <- df_bite %>% mutate(
+  dog_personality_any = if_any(all_of(
+    dog_personality_cols),
+    ~ .x == TRUE),
+  dog_personality_count = rowSums(
+    across(
+      all_of(dog_personality_cols),
+      ~ as.numeric(.x)),
+    na.rm = TRUE))
+
+# checks
+df_bite %>% count(dog_personality_any)
+
+df_bite %>% count(dog_personality_count)
+
+df_bite %>% summarise(across(all_of(
+  dog_personality_cols),
+  ~ sum(.x, na.rm = TRUE))) %>%
+  pivot_longer(everything(),
+               names_to = "personality_trait",
+               values_to = "count") %>%
+  arrange(desc(count))
+```
+
+## child personality
+
+Build child_personality_any (logical) and child_personality_count (numeric).
+
+```{r child-personality}
+# inspect
+child_personality_cols
+
+df_bite %>% 
+  filter(!is.na(personality_at_bite__other)) %>% 
+  select(personality_at_bite__other) %>% 
+  distinct() %>% 
+  print(n = Inf, width = Inf)
+
+# categorize "other" 
+df_bite <- df_bite %>% mutate(
+  personality_at_bite__other_clean = stringr::str_to_lower(
+    stringr::str_squish(personality_at_bite__other)),
+  personality_at_bite__grabby = stringr::str_detect(
+    personality_at_bite__other_clean,
+    "grabby|grab|grabbing"),
+  personality_at_bite__disabled = stringr::str_detect(
+    personality_at_bite__other_clean,
+    "handicapped|disabled|disability"),
+  personality_at_bite__disobedient = stringr::str_detect(
+    personality_at_bite__other_clean,
+    "not very obedient|disobedient|not obedient")) # disobedient might be a mistake (not dog)
+
+# identify 
+child_personality_cols <- names(df_bite) %>%
+  stringr::str_subset("^personality_at_bite__") %>%
+  setdiff(c(
+    "personality_at_bite__other",
+    "personality_at_bite__other_clean"))
+
+child_personality_cols
+
+# build summary variables
+df_bite <- df_bite %>% mutate(
+  child_personality_any = if_any(all_of(
+    child_personality_cols), 
+    ~ .x == TRUE),
+  child_personality_count = rowSums(across(all_of(
+    child_personality_cols),
+    ~ as.numeric(.x)),
+    na.rm = TRUE))
+
+# checks
+df_bite %>% count(child_personality_any)
+
+df_bite %>% count(child_personality_count)
+
+df_bite %>% summarise(across(all_of(
+  child_personality_cols),
+  ~ sum(.x, na.rm = TRUE))) %>%
+  pivot_longer(
+    everything(),
+    names_to = "child_personality_trait",
+    values_to = "count") %>% arrange(desc(count))
+```
+
+## approach direction \<- child action prior to bite
+
+Create approach_direction (categorical) column creating child_approached_dog, dog_approached_child, mutual_approach, and unknown.
+
+```{r approach-direction}
+# inspect values
+df_bite %>% count(desc_action_prior_to_bite, sort = TRUE) %>% 
+  print(n = 32, width = Inf)
+
+# std interaction direction
+df_bite <- df_bite %>% mutate(
+  approach_direction = case_when(
+    desc_action_prior_to_bite == "The child approached the dog" ~
+      "child_approached_dog",
+    desc_action_prior_to_bite == "The dog approached the child" ~
+      "dog_approached_child",
+    desc_action_prior_to_bite == "They approached each other" ~
+      "mutual_approach",
+    desc_action_prior_to_bite == "I'm not sure" ~
+      "unknown",
+    TRUE ~ NA_character_))
+
+# check
+df_bite %>% count(approach_direction, sort = TRUE)
+
+df_bite %>% select(desc_action_prior_to_bite) %>% 
+  distinct() %>% 
+  print(n = 32, width = Inf)
+```
+
+# Data checks
+
+## Dimensions
+
+Assess consistency.
+
+```{r dimensions-check}
+dim(df_bite)
+
+stopifnot(nrow(df_bite) == 32)
+```
+
+## Structure
+
+Check ages and counts are numeric, checkboxes are logical, check categories.
+
+```{r structure-check}
+glimpse(df_bite)
+```
+
+## Missings
+
+Check NAs.
+
+```{r missings-check}
+missing_summary <- df_bite %>% 
+  summarise(across(everything(), 
+                   ~ sum(is.na(.x)))) %>%
+  pivot_longer(everything(), 
+               names_to = "variable",
+               values_to = "n_missing") %>% 
+  arrange(desc(n_missing))
+
+missing_summary
+```
+
+## Variables
+
+Check numeric, logical, and categorical variables.
+
+```{r variables-check}
+
+# numeric
+df_bite %>% select(where(is.numeric)) %>%
+  summary()
+
+# logical checkbox vars
+df_bite %>% select(where(is.logical)) %>%
+  summarise(across(everything(),
+                   ~ sum(.x, na.rm = TRUE))) %>%
+  pivot_longer(
+    everything(),
+    names_to = "variable",
+    values_to = "TRUE_count") %>%
+  arrange(desc(TRUE_count))
+
+# character 
+names(df_bite)[sapply(df_bite, is.character)]
+
+# all 
+df_bite %>% select(ends_with("_any")) %>% 
+  summary()
+
+df_bite %>% select(ends_with("_count")) %>% 
+  summary()
+
+# bite severity
+table(df_bite$bite_severity, useNA = "ifany")
+
+# child age
+summary(df_bite$child_age_years)
+
+summary(df_bite$child_age_months)
+
+# dog age
+summary(df_bite$dog_age_years)
+
+summary(df_bite$dog_age_months)
+
+# child gender
+table(df_bite$child_gender_std, useNA = "ifany")
+
+# dog sex
+table(df_bite$dog_sex_std, useNA = "ifany")
+
+# reproductive status
+table(df_bite$dog_neuter, useNA = "ifany")
+
+# approach direction
+table(df_bite$approach_direction, useNA = "ifany")
+```
+
+## Remove helper vars
+
+```{r remove-helpers}
+df_bite <- df_bite %>% select(
+  -child_cnt_raw,
+  -dog_warning__other_clean,
+  -triggered_bite__other_clean,
+  -dog_personality__other_clean,
+  -personality_at_bite__other_clean)
+
+# check
+names(df_bite) %>% stringr::str_subset(
+  "_clean$|_other_clean$|_num$|_raw$")
+```
+
+## Duplicates
+
+```{r duplicates-check}
+df_bite %>% count(household_id) %>% 
+  filter(n > 1)
+```
+
+# Save as RDS
+
+Save final dataframe
+
+```{r save-RDS}
+# save as df_clean.rds
+saveRDS(df_bite, "../data/df_clean.rds")
+```
