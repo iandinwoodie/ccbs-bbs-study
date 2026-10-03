@@ -54,4 +54,3 @@ data/*.rds
 # Python
 .venv/
 __pycache__/
-.DS_Store
