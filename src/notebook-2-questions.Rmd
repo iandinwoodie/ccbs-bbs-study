@@ -1,0 +1,634 @@
+---
+title: "notebook-2-eda"
+author: "Ray Greenberg"
+date: "2026-06-10"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Load data
+
+```{r load-data}
+df_bite <- readr::read_rds("../data/df_clean.rds")
+```
+
+# Build chart
+
+```{r}
+df_desc <- df_bite %>%
+  filter(!is.na(bite_severity)) %>%
+  mutate(
+    severity = factor(
+      bite_severity,
+      levels = 1:4,
+      labels = c(
+        "Score 1",
+        "Score 2",
+        "Score 3",
+        "Score 4")),
+    child_gender_table = replace_na(
+      child_gender_std,
+      "Missing"),
+    dog_sex_table = replace_na(
+      dog_sex_std,
+      "Missing"),
+    neuter_status = case_when(
+      dog_neuter == TRUE  ~ "Sterilized",
+      dog_neuter == FALSE ~ "Intact",
+      TRUE ~ "Missing"),
+    approach_table = case_when(
+      approach_direction == "child_approached_dog" ~
+        "Child approach",
+      approach_direction == "dog_approached_child" ~
+        "Dog approach",
+      approach_direction == "mutual_approach" ~
+        "Mutual approach",
+      approach_direction == "unknown" ~
+        "Unknown",
+      TRUE ~ "Missing"))
+
+severity_levels <- levels(df_desc$severity)
+
+fmt_n_pct <- function(n, denominator) {
+  if (denominator == 0) {
+    return("—")}
+  sprintf("%d (%.1f%%)", n, 100 * n / denominator)}
+
+
+# Format continuous variables as Mean (SD)
+fmt_mean_sd <- function(x) {
+  x <- x[!is.na(x)]
+  if (length(x) == 0) {
+    return("—")}
+  m <- mean(x)
+  s <- if (length(x) > 1) {
+    sd(x)} 
+  else {NA_real_}
+  if (is.na(s)) {
+    sprintf("%.2f (—)", m)} 
+  else {sprintf("%.2f (%.2f)", m, s)}}
+
+# continuous variables
+make_cont_row <- function(var,
+                          label,
+                          section) {
+  overall <- fmt_mean_sd(
+    df_desc[[var]])
+  severity_stats <- map_chr(
+    severity_levels,
+    function(s) {
+      fmt_mean_sd(
+        df_desc[[var]][
+          df_desc$severity == s])})
+  values <- c(
+    Overall = overall,
+    setNames(
+      severity_stats,
+      severity_levels))
+  tibble(
+    Section = section,
+    Variable = label) %>%
+    bind_cols(as_tibble_row(values))}
+
+# categorical variables
+make_cat_rows <- function(var,
+                          section,
+                          level_order) {
+  x <- as.character(
+    df_desc[[var]])
+  map_dfr(
+    level_order,
+    function(level) {
+      overall_n <- sum(
+        x == level,
+        na.rm = TRUE)
+      overall <- fmt_n_pct(
+        overall_n,
+        nrow(df_desc))
+      severity_stats <- map_chr(
+        severity_levels,
+        function(s) {
+          keep <- df_desc$severity == s
+          n_level <- sum(
+            x[keep] == level,
+            na.rm = TRUE)
+          fmt_n_pct(
+            n_level,
+            sum(keep))})
+      values <- c(
+        Overall = overall,
+        setNames(
+          severity_stats,
+          severity_levels))
+      tibble(
+        Section = section,
+        Variable = level
+      ) %>%
+        bind_cols(
+          as_tibble_row(values))})}
+
+# logical/checkbox vars
+make_binary_rows <- function(vars,
+                             section) {
+  map2_dfr(
+    names(vars),
+    unname(vars),
+    function(label, var) {
+      x <- df_desc[[var]]
+      overall_n <- sum(
+        x == TRUE,
+        na.rm = TRUE)
+      overall <- fmt_n_pct(
+        overall_n,
+        nrow(df_desc))
+      severity_stats <- map_chr(
+        severity_levels,
+        function(s) {
+          keep <- df_desc$severity == s
+          n_true <- sum(
+            x[keep] == TRUE,
+            na.rm = TRUE)
+          fmt_n_pct(
+            n_true,
+            sum(keep))})
+      values <- c(
+        Overall = overall,
+        setNames(
+          severity_stats,
+          severity_levels))
+      tibble(
+        Section = section,
+        Variable = label
+      ) %>%
+        bind_cols(
+          as_tibble_row(values))})}
+
+# dependent variables
+## conflict behavior
+conflict_vars <- c(
+  "Conflict-defusing" =
+    "conflict_defusing",
+  "Conflict-avoiding" =
+    "conflict_avoiding",
+  "Conflict-escalating" =
+    "conflict_escalating")
+
+## triggers 
+dog_trigger_cols <- names(df_desc) %>%
+  str_subset("^triggered_bite__") %>%
+  setdiff(c("triggered_bite__other",
+            "triggered_bite__other_clean"))
+
+trigger_vars <- dog_trigger_cols
+
+names(trigger_vars) <- trigger_vars %>%
+  str_remove("^triggered_bite__") %>%
+  str_replace_all("_", " ") %>%
+  str_to_sentence()
+
+# dog personality
+dog_personality_cols <- names(df_desc) %>%
+  str_subset("^dog_personality__") %>%
+  setdiff(c(
+    "dog_personality__other",
+    "dog_personality__other_clean"))
+
+dog_personality_vars <- dog_personality_cols
+
+names(dog_personality_vars) <-
+  dog_personality_vars %>%
+  str_remove("^dog_personality__") %>%
+  str_replace_all("_", " ") %>%
+  str_to_sentence()
+
+# child personality
+child_personality_cols <- names(df_desc) %>%
+  str_subset("^personality_at_bite__") %>%
+  setdiff(c(
+    "personality_at_bite__other",
+    "personality_at_bite__other_clean"))
+
+child_personality_vars <-
+  child_personality_cols
+
+names(child_personality_vars) <-
+  child_personality_vars %>%
+  str_remove("^personality_at_bite__") %>%
+  str_replace_all("_", " ") %>%
+  str_to_sentence()
+
+# BUILD TABLE
+descriptive_table <- bind_rows(
+## child
+  make_cont_row(
+    "child_age_years",
+    "Child age, years",
+    "Child characteristics"),
+  make_cat_rows(
+    "child_gender_table",
+    "Child characteristics",
+    c("Female",
+      "Male",
+      "Prefer not to say")),
+  ## dog
+  make_cont_row(
+    "dog_age_years",
+    "Dog age, years",
+    "Dog characteristics"),
+  make_cat_rows(
+    "dog_sex_table",
+    "Dog characteristics",
+    c("Female",
+      "Male")),
+  make_cat_rows(
+    "neuter_status",
+    "Dog characteristics",
+    c("Sterilized",
+      "Intact")),
+  ## conflict behaviors
+  make_cont_row(
+    "dog_warning_count",
+    "Number of conflict behaviors reported",
+    "Conflict behaviors prior to bite"),
+  make_binary_rows(
+    conflict_vars,
+    "Conflict behaviors prior to bite"),
+  ## approach direction
+  make_cat_rows(
+    "approach_table",
+    "Approach direction",
+    c("Child approach",
+      "Dog approach",
+      "Mutual approach",
+      "Unknown")))
+
+severity_n <- table(df_desc$severity)
+
+names(descriptive_table)[3:7] <- c(
+  paste0(
+    "Overall (N = ",
+    nrow(df_desc),
+    ")"),
+  paste0(
+    severity_levels,
+    " (n = ",
+    as.integer(severity_n[
+      severity_levels]),
+    ")"))
+
+# print
+knitr::kable(
+  descriptive_table,
+  align = c("l", "l", "c", "c", "c", "c", "c"),
+  caption = paste0(
+    "Descriptive characteristics of bite incidents ",
+    "overall and by bite severity score"))
+```
+
+# warning signals grouped by behavioral response
+```{r}
+library(tidyverse)
+
+warning_plot <- tribble(
+  ~warning_signal,              ~activity,              ~n,
+  "Whale eye",                  "Conflict-defusing",     2,
+  "Tucked tail",                "Conflict-avoiding",     3,
+  "Raised hackles",             "Conflict-avoiding",     2,
+  "Cowered away",               "Conflict-avoiding",     1,
+  "Air snapped",                "Conflict-escalating",   4,
+  "Lunged",                     "Conflict-escalating",   2,
+  "Growled",                    "Conflict-escalating",   2,
+  "Barked",                     "Conflict-escalating",   1,
+  "Bared teeth / lifted lips",  "Conflict-escalating",   1
+)
+
+# Incident-level totals from your current Figure 2B
+activity_totals <- tribble(
+  ~activity,              ~incidents, ~percent,
+  "Conflict-defusing",           2,       6.2,
+  "Conflict-avoiding",           4,      12.5,
+  "Conflict-escalating",         8,      25.0
+)
+
+# Create informative facet labels
+activity_labels <- activity_totals |>
+  mutate(
+    facet_label = paste0(
+      activity, " — ",
+      incidents, " incidents (", percent, "%)"
+    )
+  ) |>
+  select(activity, facet_label)
+
+warning_plot <- warning_plot |>
+  left_join(activity_labels, by = "activity")
+
+# Set ordering
+warning_plot <- warning_plot |>
+  mutate(
+    facet_label = factor(
+      facet_label,
+      levels = activity_labels$facet_label
+    ),
+    warning_signal = factor(
+      warning_signal,
+      levels = rev(c(
+        "Whale eye",
+        "Tucked tail",
+        "Raised hackles",
+        "Cowered away",
+        "Air snapped",
+        "Lunged",
+        "Growled",
+        "Barked",
+        "Bared teeth / lifted lips"
+      ))
+    )
+  )
+
+ggplot(
+  warning_plot,
+  aes(x = n, y = warning_signal, fill = activity)
+) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+
+  geom_text(
+    aes(label = n),
+    hjust = -0.35,
+    size = 3.7
+  ) +
+
+  facet_grid(
+    facet_label ~ .,
+    scales = "free_y",
+    space = "free_y"
+  ) +
+
+  scale_fill_manual(
+    values = c(
+      "Conflict-defusing"   = "#4C78A8",
+      "Conflict-avoiding"   = "#F2A12D",
+      "Conflict-escalating" = "#D83B3B"
+    )
+  ) +
+
+  scale_x_continuous(
+    breaks = 0:4,
+    limits = c(0, 4.7),
+    expand = expansion(mult = c(0, .02))
+  ) +
+
+  labs(
+    x = "Number of warning signals reported",
+    y = NULL
+  ) +
+
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    strip.text.y = element_text(
+      face = "bold",
+      size = 11,
+      angle = 0
+    ),
+
+    strip.placement = "outside",
+    strip.background = element_blank(),
+
+    axis.text.y = element_text(size = 11),
+
+    panel.spacing.y = unit(0.8, "lines"),
+
+    plot.margin = margin(10, 20, 10, 10)
+  )
+```
+
+# bite severity X age
+```{r}
+# verify vars
+df_bite %>%
+  select(
+    bite_severity,
+    dog_age_years,
+    child_age_years
+  ) %>%
+  summary()
+
+# check NAs
+df_bite %>%
+  summarise(
+    bite_severity_NA = sum(is.na(bite_severity)),
+    dog_age_NA = sum(is.na(dog_age_years)),
+    child_age_NA = sum(is.na(child_age_years)))
+
+# visual 
+age_severity_plot <- df_bite %>%
+  select(
+    bite_severity,
+    child_age_years,
+    dog_age_years
+  ) %>%
+  pivot_longer(
+    cols = c(child_age_years, dog_age_years),
+    names_to = "age_type",
+    values_to = "age_years"
+  ) %>%
+  mutate(
+    age_type = recode(
+      age_type,
+      child_age_years = "Child age",
+      dog_age_years = "Dog age"
+    ),
+    bite_severity = factor(
+      bite_severity,
+      levels = c(1, 2, 3, 4)))
+
+ggplot(
+  age_severity_plot,
+  aes(
+    x = bite_severity,
+    y = age_years
+  )
+) +
+  geom_boxplot(
+    width = 0.55,
+    outlier.shape = NA,
+    alpha = 0.4
+  ) +
+  geom_jitter(
+    width = 0.12,
+    height = 0,
+    size = 2,
+    alpha = 0.75
+  ) +
+  facet_wrap(
+    ~ age_type,
+    nrow = 1
+  ) +
+  labs(
+    x = "Bite severity score",
+    y = "Age (years)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    strip.text = element_text(
+      face = "bold",
+      size = 11
+    ),
+    axis.title = element_text(
+      face = "bold"))
+
+# OR SWITCH AXIS
+age_severity_plot <- df_bite %>%
+  select(
+    bite_severity,
+    child_age_years,
+    dog_age_years
+  ) %>%
+  pivot_longer(
+    cols = c(child_age_years, dog_age_years),
+    names_to = "age_type",
+    values_to = "age_years"
+  ) %>%
+  mutate(
+    age_type = recode(
+      age_type,
+      child_age_years = "Child age",
+      dog_age_years = "Dog age"))
+
+ggplot(
+  age_severity_plot,
+  aes(
+    x = age_years,
+    y = bite_severity
+  )
+) +
+  geom_jitter(
+    width = 0,
+    height = 0.08,
+    size = 2.5,
+    alpha = 0.7
+  ) +
+  facet_wrap(
+    ~ age_type,
+    nrow = 1
+  ) +
+  scale_y_continuous(
+    breaks = 1:4,
+    limits = c(0.75, 4.25)
+  ) +
+  labs(
+    x = "Age (years)",
+    y = "Bite severity score"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.text = element_text(
+      face = "bold",
+      size = 11
+    ),
+    axis.title = element_text(
+      face = "bold"))
+
+# color coded
+age_severity_plot <- df_bite %>%
+  mutate(case_id = row_number()) %>%
+  select(
+    case_id,
+    bite_severity,
+    child_age_years,
+    dog_age_years
+  ) %>%
+  pivot_longer(
+    cols = c(child_age_years, dog_age_years),
+    names_to = "age_type",
+    values_to = "age_years"
+  ) %>%
+  mutate(
+    age_type = recode(
+      age_type,
+      child_age_years = "Child age",
+      dog_age_years = "Dog age"
+    ), 
+    severity_plot = case_when(
+      age_type == "Child age" ~ bite_severity + 0.07,
+      age_type == "Dog age"   ~ bite_severity - 0.07))
+
+ggplot(
+  age_severity_plot,
+  aes(
+    x = age_years,
+    y = severity_plot,
+    color = age_type,
+    shape = age_type
+  )
+) +
+  geom_point(
+    size = 3,
+    alpha = 0.8
+  ) +
+
+  scale_color_manual(
+    values = c(
+      "Child age" = "#4C78A8",
+      "Dog age"   = "#F2A12D"
+    )
+  ) +
+
+  scale_shape_manual(
+    values = c(
+      "Child age" = 16,
+      "Dog age"   = 16
+    )
+  ) +
+
+  scale_y_continuous(
+    breaks = 1:4,
+    labels = 1:4,
+    limits = c(0.75, 4.25)
+  ) +
+
+  scale_x_continuous(
+    breaks = seq(
+      0,
+      ceiling(max(age_severity_plot$age_years, na.rm = TRUE)),
+      by = 2
+    )
+  ) +
+
+  labs(
+    x = "Age (years)",
+    y = "Bite severity score",
+    color = NULL,
+    shape = NULL
+  ) +
+
+  theme_minimal(base_size = 12) +
+
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+
+    axis.title = element_text(
+      face = "bold"
+    ),
+
+    legend.position = "top",
+
+    legend.text = element_text(
+      size = 11))
+```
+
+
+
