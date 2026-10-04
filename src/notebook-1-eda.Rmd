@@ -2,8 +2,8 @@
 title: "Exploratory Data Analysis"
 date: "`r Sys.Date()`"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -273,7 +273,7 @@ df_bite %>% summarise(
 
 # visuals 
 ## histogram
-ggplot(df_bite, aes(x = child_age_years)) +
+ggplot(df_bite, aes(x = dog_age_years)) +
   geom_histogram(binwidth = 1) + labs(
     title = "Dog Age Distribution (bite occurred)",
     x = "Dog Age (Years)",
@@ -281,7 +281,7 @@ ggplot(df_bite, aes(x = child_age_years)) +
   theme_minimal()
 
 ## boxplot
-ggplot(df_bite, aes(y = child_age_years)) +
+ggplot(df_bite, aes(y = dog_age_years)) +
   geom_boxplot() + labs(
     title = "Dog Age Boxplot (bite occurred)",
     y = "Dog Age (Years)") +
@@ -348,7 +348,24 @@ bite_demo_table
 
 ## Dog behavior prior to bite
 
-dog_warning_any, \_count
+```{r}
+# warning-signal groups (ladder of aggression); must match notebook-0
+conflict_defusing_cols <- c(
+  "dog_behavior_prior_to_bite__whale_eye")
+
+conflict_avoiding_cols <- c(
+  "dog_behavior_prior_to_bite__cowered_away",
+  "dog_behavior_prior_to_bite__raised_hackles",
+  "dog_behavior_prior_to_bite__tucked_tail")
+
+conflict_escalating_cols <- c(
+  "dog_behavior_prior_to_bite__air_snapped",
+  "dog_behavior_prior_to_bite__growled",
+  "dog_behavior_prior_to_bite__lunged",
+  "dog_behavior_prior_to_bite__bared_teeth_lifted_lips",
+  "dog_behavior_prior_to_bite__barked")
+```
+
 
 ```{r dog-warning}
 df_bite %>% count(dog_warning_any, name = "n") %>% 
@@ -430,6 +447,108 @@ df_bite %>%
     x = "Warning signal",
     y = "n") +
   theme_minimal()
+
+# with conflict category
+# Warning signal frequencies + conflict category
+warning_summary <- df_bite %>%
+  summarise(
+    across(
+      all_of(dog_warning_cols),
+      ~ sum(.x, na.rm = TRUE)
+    )
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "warning_signal",
+    values_to = "n"
+  ) %>%
+  mutate(
+    
+    # assign conflict category
+    conflict_category = case_when(
+      
+      warning_signal %in% conflict_defusing_cols ~
+        "Conflict-defusing",
+      
+      warning_signal %in% conflict_avoiding_cols ~
+        "Conflict-avoiding",
+      
+      warning_signal %in% conflict_escalating_cols ~
+        "Conflict-escalating",
+      
+      TRUE ~ NA_character_
+    ),
+    
+    # clean variable names for graph
+    warning_signal = case_when(
+      warning_signal == "dog_behavior_prior_to_bite__air_snapped" ~
+        "Air snapped",
+      
+      warning_signal == "dog_behavior_prior_to_bite__bared_teeth_lifted_lips" ~
+        "Bared teeth / lifted lips",
+      
+      warning_signal == "dog_behavior_prior_to_bite__barked" ~
+        "Barked",
+      
+      warning_signal == "dog_behavior_prior_to_bite__cowered_away" ~
+        "Cowered away",
+      
+      warning_signal == "dog_behavior_prior_to_bite__growled" ~
+        "Growled",
+      
+      warning_signal == "dog_behavior_prior_to_bite__lunged" ~
+        "Lunged",
+      
+      warning_signal == "dog_behavior_prior_to_bite__raised_hackles" ~
+        "Raised hackles",
+      
+      warning_signal == "dog_behavior_prior_to_bite__tucked_tail" ~
+        "Tucked tail",
+      
+      warning_signal == "dog_behavior_prior_to_bite__whale_eye" ~
+        "Whale eye",
+      
+      TRUE ~ warning_signal
+    ),
+    
+    conflict_category = factor(
+      conflict_category,
+      levels = c(
+        "Conflict-defusing",
+        "Conflict-avoiding",
+        "Conflict-escalating"
+      )
+    )
+  )
+
+# graph 
+ggplot(
+  warning_summary,
+  aes(
+    x = n,
+    y = reorder(warning_signal, n),
+    fill = conflict_category
+  )
+) +
+  geom_col(width = 0.9) +
+  labs(
+    title = "Dog Warning Signals Reported",
+    x = "n",
+    y = "Warning signal",
+    fill = "Conflict activity"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Conflict-defusing" = "#4C78A8",
+      "Conflict-avoiding" = "#F2A541",
+      "Conflict-escalating" = "#D9534F"
+    )
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "right",
+    panel.grid.major.y = element_blank()
+  )
 ```
 
 ## Dog trigger
@@ -508,6 +627,89 @@ df_bite %>%
     x = "Trigger",
     y = "n") +
   theme_minimal()
+
+# Trigger frequencies by approach direction
+trigger_approach_summary <- df_bite %>%
+  
+  select(
+    approach_direction,
+    all_of(dog_trigger_cols)
+  ) %>%
+  
+  pivot_longer(
+    cols = all_of(dog_trigger_cols),
+    names_to = "trigger",
+    values_to = "present"
+  ) %>%
+  
+  filter(present == TRUE) %>%
+  
+  mutate(
+    # clean trigger names
+    trigger = trigger %>%
+      str_remove("^triggered_bite__") %>%
+      str_replace_all("_", " ") %>%
+      str_to_sentence(),
+    
+    # clean approach direction labels
+    approach_direction = recode(
+      approach_direction,
+      child_approached_dog = "Child approach",
+      dog_approached_child = "Dog approach",
+      mutual_approach = "Mutual approach",
+      unknown = "Unknown"
+    ),
+    
+    approach_direction = factor(
+      approach_direction,
+      levels = c(
+        "Child approach",
+        "Dog approach",
+        "Mutual approach",
+        "Unknown"
+      )
+    )
+  ) %>%
+  
+  count(
+    trigger,
+    approach_direction,
+    name = "n"
+  )
+
+# graph 
+ggplot(
+  trigger_approach_summary,
+  aes(
+    x = n,
+    y = reorder(trigger, n, FUN = sum),
+    fill = approach_direction
+  )
+) +
+  geom_col(width = 0.9) +
+  
+  labs(
+    title = "Specific Bite Triggers Reported",
+    x = "n",
+    y = "Trigger",
+    fill = "Approach direction"
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "Child approach" = "#4C78A8",
+      "Dog approach" = "#E45756",
+      "Mutual approach" = "#F2A541",
+      "Unknown" = "#9E9E9E"
+    )
+  ) +
+  
+  theme_minimal(base_size = 14) +
+  
+  theme(
+    legend.position = "right",
+    panel.grid.major.y = element_blank()
+  )
 ```
 
 ## Bite severity
@@ -737,11 +939,11 @@ ggplot(df_bite, aes(x = approach_direction)) +
   scale_x_discrete(
     drop = FALSE,
     labels = c(
-      child_approached_dog = "Child approached dog",
-      dog_approached_child = "Dog approached child",
+      child_approached_dog = "Child approach",
+      dog_approached_child = "Dog approach",
       mutual_approach = "Mutual approach",
       unknown = "Unknown")) + labs(
-        title = "Approach Direction Prior to Bite",
+        title = "Reported Approach Direction Prior to Bite",
         x = "Approach direction",
         y = "n") +
   theme_minimal()
@@ -756,11 +958,11 @@ df_bite %>%
   scale_x_discrete(
     drop = FALSE,
     labels = c(
-      child_approached_dog = "Child approached dog",
-      dog_approached_child = "Dog approached child",
+      child_approached_dog = "Child approach",
+      dog_approached_child = "Dog approach",
       mutual_approach = "Mutual approach",
       unknown = "Unknown")) + labs(
-        title = "Bite Severity by Approach Direction",
+        title = "Reported Bite Severity by Approach Direction",
         x = "Approach direction",
         y = "n",
         fill = "Severity") + 
@@ -772,11 +974,11 @@ df_bite %>%
 ## warning signs and bite severity
 
 ```{r warning-signals}
-df_bite %>% count(dog_warning_any, bite_severity_clean)
+df_bite %>% count(dog_warning_any, bite_severity)
 
 # visual
 ggplot(df_bite, aes(
-  x = factor(bite_severity_clean),
+  x = factor(bite_severity),
   fill = dog_warning_any)) + 
   geom_bar(position = "stack") + 
   scale_fill_discrete(labels = c(
@@ -789,7 +991,7 @@ ggplot(df_bite, aes(
   theme_minimal()
 
 # warning count trend by severity
-df_bite %>% group_by(bite_severity_clean) %>% 
+df_bite %>% group_by(bite_severity) %>% 
   summarise(
     warning_count_mean = mean(dog_warning_count, na.rm = TRUE),
     warning_count_median = median(dog_warning_count, na.rm = TRUE),
@@ -797,7 +999,7 @@ df_bite %>% group_by(bite_severity_clean) %>%
 
 # warning count distribution 
 ggplot(df_bite, aes(
-  x = factor(bite_severity_clean),
+  x = factor(bite_severity),
   fill = factor(dog_warning_count))) + 
   geom_bar(position = "fill") +
   scale_y_continuous(labels = scales::percent) + 
@@ -811,7 +1013,7 @@ ggplot(df_bite, aes(
 # Jitter plot
 ggplot(df_bite,
        aes(
-         x = factor(bite_severity_clean),
+         x = factor(bite_severity),
          y = dog_warning_count)) +
   geom_jitter(
     width = 0.15,
@@ -840,8 +1042,8 @@ ggplot(df_bite, aes(
     "FALSE" = "No warning signal",
     "TRUE" = "Warning Signal")) +
   scale_x_discrete(labels = c(
-    child_approached_dog = "Child approached dog",
-    dog_approached_child = "Dog approached child",
+    child_approached_dog = "Child approach",
+    dog_approached_child = "Dog approach",
     mutual_approach = "Mutual approach",
     unknown = "Unknown")) +
   labs(
@@ -874,8 +1076,8 @@ ggplot(warning_summary, aes(
     labels = scales::percent,
     limits = c(0, 1)) +
   scale_x_discrete(labels = c(
-    child_approached_dog = "Child approached dog",
-    dog_approached_child = "Dog approached child",
+    child_approached_dog = "Child approach",
+    dog_approached_child = "Dog approach",
     mutual_approach = "Mutual approach",
     unknown = "Unknown")) +
   labs(
@@ -888,7 +1090,7 @@ ggplot(warning_summary, aes(
 ## child age x severity
 
 ```{r}
-df_bite %>% group_by(bite_severity_clean) %>% 
+df_bite %>% group_by(bite_severity) %>% 
   summarise(
     child_age_mean = mean(child_age_years, na.rm = TRUE),
     child_age_median = median(child_age_years, na.rm = TRUE), 
@@ -899,7 +1101,7 @@ df_bite %>% group_by(bite_severity_clean) %>%
 
 # visual 
 ggplot(df_bite, aes(
-  x = factor(bite_severity_clean),
+  x = factor(bite_severity),
   y = child_age_years)) + 
   geom_boxplot() + geom_jitter(
     width = 0.15,
@@ -952,7 +1154,7 @@ ggplot(df_bite,
 ```{r}
 # summary table
 df_bite %>%
-  group_by(bite_severity_clean) %>%summarise(
+  group_by(bite_severity) %>%summarise(
     mean_dog_age = mean(dog_age_years, na.rm = TRUE),
     median_dog_age = median(dog_age_years, na.rm = TRUE),
     sd_dog_age = sd(dog_age_years, na.rm = TRUE),
@@ -963,7 +1165,7 @@ df_bite %>%
 
 # visualization
 ggplot(df_bite, aes(
-         x = factor(bite_severity_clean),
+         x = factor(bite_severity),
          y = dog_age_years)) +
   geom_boxplot() +
   geom_jitter(
@@ -1016,12 +1218,12 @@ ggplot(df_bite, aes(
 ```{r dog-sex-x-severity}
 ## dog sex x severity
 # counts
-df_bite %>% count(dog_sex_std, bite_severity_clean)
+df_bite %>% count(dog_sex_std, bite_severity)
 
 # visualization
 ggplot(df_bite, aes(
          x = dog_sex_std,
-         fill = factor(bite_severity_clean))) +
+         fill = factor(bite_severity))) +
   geom_bar(position = "stack") +
   scale_x_discrete(labels = c(
     Female = "Female",
@@ -1061,4 +1263,69 @@ ggplot(df_bite, aes(
     y = "Proportion of Cases",
     fill = "Warning Signal") +
   theme_minimal()
+```
+
+# warning signals X conflict response
+```{r}
+warning_key <- tribble(
+  ~signal_var,                  ~signal_label,                    ~conflict_category,
+  "whale_eye",                  "Whale eye",                      "Conflict-defusing",
+
+  "cowered_away",               "Cowered away",                   "Conflict-avoiding",
+  "raised_hackles",             "Raised hackles",                 "Conflict-avoiding",
+  "tucked_tail",                "Tucked tail",                    "Conflict-avoiding",
+
+  "air_snapped",                "Air snapped",                    "Conflict-escalating",
+  "growled",                    "Growled",                        "Conflict-escalating",
+  "lunged",                     "Lunged",                         "Conflict-escalating",
+  "bared_teeth_lifted_lips",    "Bared teeth / lifted lips",      "Conflict-escalating",
+  "barked",                     "Barked",                         "Conflict-escalating")
+
+warning_key <- warning_key %>%
+  mutate(signal_var = paste0("dog_behavior_prior_to_bite__", signal_var))
+
+# signal frequencies
+warning_long <- df_bite %>%
+  mutate(incident_id = row_number()) %>%
+  select(
+    incident_id,
+    all_of(warning_key$signal_var)
+  ) %>%
+  pivot_longer(
+    cols = -incident_id,
+    names_to = "signal_var",
+    values_to = "reported"
+  ) %>%
+  left_join(
+    warning_key,
+    by = "signal_var"
+  ) %>%
+  mutate(
+    reported = replace_na(as.logical(reported), FALSE))
+
+signal_counts <- warning_long %>%
+  group_by(
+    conflict_category,
+    signal_label
+  ) %>%
+  summarise(
+    n = sum(reported),
+    .groups = "drop")
+
+category_counts <- warning_long %>%
+  group_by(
+    incident_id,
+    conflict_category
+  ) %>%
+  summarise(
+    category_reported = any(reported),
+    .groups = "drop"
+  ) %>%
+  group_by(conflict_category) %>%
+  summarise(
+    incidents = sum(category_reported),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    percent = incidents / nrow(df_bite) * 100)
 ```

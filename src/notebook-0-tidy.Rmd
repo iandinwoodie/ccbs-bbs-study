@@ -373,7 +373,7 @@ Inspect dog gender to formalize dog_neuter status variable.
 df_bite %>% 
   count(dog_sex, sort = TRUE)
 
-# create variable for sterilization
+# create variable for neuter
 df_bite <- df_bite %>% 
   mutate(
     dog_sex_raw = str_to_lower(str_squish(dog_sex)),
@@ -625,6 +625,95 @@ df_bite %>% summarise(across(all_of(
     names_to = "dog_warning",
     values_to = "count") %>% 
   arrange(desc(count))
+
+# ladder of aggression categorization
+conflict_defusing_cols <- c(
+  "dog_behavior_prior_to_bite__whale_eye")
+
+conflict_avoiding_cols <- c(
+  "dog_behavior_prior_to_bite__cowered_away",
+  "dog_behavior_prior_to_bite__raised_hackles",
+  "dog_behavior_prior_to_bite__tucked_tail")
+
+conflict_escalating_cols <- c(
+  "dog_behavior_prior_to_bite__air_snapped",
+  "dog_behavior_prior_to_bite__growled",
+  "dog_behavior_prior_to_bite__lunged",
+  "dog_behavior_prior_to_bite__bared_teeth_lifted_lips",
+  "dog_behavior_prior_to_bite__barked")
+
+df_bite <- df_bite %>% mutate(
+  conflict_defusing = 
+    if_any(all_of(conflict_defusing_cols),
+           ~ .x == TRUE),
+  conflict_defusing_count = rowSums(
+    across(all_of(conflict_defusing_cols),
+           ~ as.numeric(.x)),
+    na.rm = TRUE),
+  conflict_avoiding = 
+    if_any(all_of(conflict_avoiding_cols),
+           ~ .x == TRUE),
+  conflict_avoiding_count = rowSums(
+    across(all_of(conflict_avoiding_cols),
+           ~ as.numeric(.x)),
+    na.rm = TRUE),
+  conflict_escalating = 
+    if_any(all_of(conflict_escalating_cols),
+           ~ .x == TRUE),
+  conflict_escalating_count = rowSums(
+    across(all_of(conflict_escalating_cols),
+           ~ as.numeric(.x)),
+    na.rm = TRUE))
+
+df_bite %>% summarise(
+  conflict_defusing = sum(conflict_defusing, na.rm = TRUE),
+  conflict_avoiding = sum(conflict_avoiding, na.rm = TRUE),
+  conflict_escalating = sum(conflict_escalating, na.rm = TRUE))
+
+# visual 
+
+conflict_summary <- df_bite %>%
+  summarise(
+    `Conflict-defusing` = sum(conflict_defusing, na.rm = TRUE),
+    `Conflict-avoiding` = sum(conflict_avoiding, na.rm = TRUE),
+    `Conflict-escalating` = sum(conflict_escalating, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "behavior_category",
+    values_to = "count"
+  ) %>%
+  mutate(
+    percent = count / nrow(df_bite) * 100,
+    behavior_category = factor(
+      behavior_category,
+      levels = c(
+        "Conflict-defusing",
+        "Conflict-avoiding",
+        "Conflict-escalating")))
+
+conflict_summary
+
+# bar graph
+ggplot(
+  conflict_summary,
+  aes(x = behavior_category, y = count)
+) +
+  geom_col(width = 0.65) +
+  geom_text(
+    aes(label = paste0(count, " (", round(percent, 1), "%)")),
+    vjust = -0.4,
+    size = 4
+  ) +
+  labs(
+    title = "Dog Behavior Prior to Bite",
+    subtitle = "Behavioral responses grouped by conflict category",
+    x = NULL,
+    y = "Number of bite incidents") +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    axis.text.x = element_text(size = 11))
 ```
 
 ## dog triggers
@@ -731,59 +820,191 @@ df_bite %>% summarise(across(all_of(
   arrange(desc(count))
 ```
 
+# warning + trigger charts
+
+```{r}
+# Dog warning behavior categories
+dog_warning_categories <- tibble(
+  `Conflict category` = c(
+    "Conflict-defusing",
+    "Conflict-avoiding",
+    "Conflict-escalating"
+  ),
+  `Behaviors included` = c(
+    "Whale eye",
+    "Cowered away; Raised hackles; Tucked tail",
+    "Air snapped; Growled; Lunged; Bared teeth / lifted lips; Barked"
+  )
+)
+
+# Approach direction categories
+approach_direction_categories <- tibble(
+  `Approach direction` = c(
+    "Child approach",
+    "Dog approach",
+    "Mutual approach",
+    "Unknown"
+  ),
+  `Survey response` = c(
+    "The child approached the dog",
+    "The dog approached the child",
+    "They approached each other",
+    "I'm not sure"
+  )
+)
+
+# Bite trigger categories
+dog_trigger_categories <- tibble(
+  `Bite trigger` = c(
+    "Hugged the dog",
+    "Pet head",
+    "Pet legs / paws",
+    "Belly rub",
+    "Approached dog with toy",
+    "Approached dog while eating",
+    "Approached dog while chewing",
+    "Approached dog while sleeping",
+    "Picked up dog",
+    "Ran at dog",
+    "Child running",
+    "Stepped / fell on dog",
+    "Restrained dog",
+    "Touched collar",
+    "Resource conflict",
+    "Redirected aggression",
+    "Tight space / trapped",
+    "Moved dog",
+    "Pet back",
+    "Face close to dog",
+    "Tail pull",
+    "Teasing",
+    "Loud / high-pitched sound",
+    "No obvious trigger"
+  )
+)
+
+# Print tables
+knitr::kable(
+  dog_warning_categories,
+  caption = "Dog behaviors grouped by conflict-response category"
+)
+
+knitr::kable(
+  approach_direction_categories,
+  caption = "Approach direction prior to bite"
+)
+
+knitr::kable(
+  dog_trigger_categories,
+  caption = "Reported bite triggers"
+)
+```
+
 ## bite severity
 
-Build numeric bite_severity_num and bite_severity_clean to include recoded "other" values.
+Build numeric bite_severity_num and bite_severity to include recoded "other" values.
 
 ```{r bite-severity}
 # inspect
-df_bite %>% count(bite_severity, sort = TRUE) %>%
+df_bite <- df_bite %>%
+  mutate(
+    # preserve original survey response
+    bite_severity_raw = bite_severity,
+
+    # extract numeric score from responses such as "Score 1", "Score 2", etc.
+    bite_severity_num = stringr::str_extract(
+      as.character(bite_severity_raw),
+      "\\d+"
+    ) %>%
+      as.numeric(),
+
+    # clean free-text "other" responses
+    bite_severity_other_clean = stringr::str_to_lower(
+      stringr::str_squish(bite_severity__other)
+    ),
+
+    # recode interpretable "other" responses
+    bite_severity_other_recoded = case_when(
+      stringr::str_detect(
+        bite_severity_other_clean,
+        "puncture|laceration"
+      ) ~ 3,
+
+      stringr::str_detect(
+        bite_severity_other_clean,
+        "no mark on the skin|no visible injury|clothes"
+      ) ~ 1,
+
+      TRUE ~ NA_real_
+    ),
+
+    # use standard score when available;
+    # otherwise use recoded "other" response
+    bite_severity = dplyr::coalesce(
+      bite_severity_num,
+      bite_severity_other_recoded
+    )
+  )
+
+
+# Check original responses
+df_bite %>%
+  count(bite_severity_raw, sort = TRUE, .drop = FALSE) %>%
   print(n = Inf, width = Inf)
 
-df_bite <- df_bite %>% mutate(
-  bite_severity_num = stringr::str_extract(
-    bite_severity,
-    "(?<=Score )\\d") %>%
-    as.numeric())
 
-# checks
+# Check final bite severity variable
 df_bite %>%
-  count(bite_severity_num, sort = TRUE)
-
-df_bite %>%
-  select(bite_severity, bite_severity_num, bite_severity__other) %>%
-  filter(is.na(bite_severity_num) | !is.na(bite_severity__other)) %>%
+  count(bite_severity, sort = TRUE, .drop = FALSE) %>%
   print(n = Inf, width = Inf)
 
-# categorize "other"
-df_bite <- df_bite %>% mutate(
-  bite_severity_other_recoded = case_when(
-    str_detect(
-      bite_severity__other,
-      "puncture|laceration") ~ 3,
-    str_detect(
-      bite_severity__other,
-      "no mark on the skin|no visible injury|clothes") ~ 1,
-    TRUE ~ NA_real_),
-  bite_severity_clean = coalesce(
+
+# Inspect any cases that are still NA
+df_bite %>%
+  filter(is.na(bite_severity)) %>%
+  select(
+    bite_severity_raw,
+    bite_severity__other,
     bite_severity_num,
-    bite_severity_other_recoded))
-
-# check 
-df_bite %>% count(bite_severity_clean, sort = TRUE)
-
-df_bite %>% select(
-  bite_severity,
-  bite_severity__other,
-  bite_severity_num,
-  bite_severity_other_recoded,
-  bite_severity_clean) %>%
-  filter(!is.na(bite_severity__other) | is.na(bite_severity_clean)) %>%
+    bite_severity_other_recoded
+  ) %>%
   print(n = Inf, width = Inf)
 
-# remove helper
-df_bite <- df_bite %>% mutate(bite_severity = bite_severity_clean) %>%
-  select(-bite_severity_num, -bite_severity_other_recoded, -bite_severity_clean)
+
+# Inspect all "other" responses and how they were recoded
+df_bite %>%
+  filter(!is.na(bite_severity__other)) %>%
+  select(
+    bite_severity_raw,
+    bite_severity__other,
+    bite_severity_other_recoded,
+    bite_severity
+  ) %>%
+  print(n = Inf, width = Inf)
+
+
+# Remove temporary helper variables
+# Keep bite_severity_raw for auditing and bite_severity as the final numeric variable
+df_bite <- df_bite %>%
+  select(
+    -bite_severity_num,
+    -bite_severity_other_clean,
+    -bite_severity_other_recoded
+  )
+
+# check
+df_bite %>%
+  count(bite_severity, sort = TRUE, .drop = FALSE)
+
+# check NAs
+df_bite %>%
+  filter(is.na(bite_severity)) %>%
+  select(bite_severity_raw, bite_severity__other)
+
+# delete helper vars
+df_bite <- df_bite %>%
+  select(
+    -bite_severity_raw)
 ```
 
 ## dog personality
@@ -795,9 +1016,6 @@ Build dog_personality_any (logical) and dog_personality_count (numeric).
 df_bite %>% filter(!is.na(dog_personality__other)) %>% select(
   dog_personality__other) %>% distinct() %>%
   print(n = Inf, width = Inf)
-
-# existing categories
-dog_personality_cols
 
 # include others in new categories
 df_bite <- df_bite %>% mutate(
@@ -854,9 +1072,6 @@ df_bite %>% summarise(across(all_of(
 Build child_personality_any (logical) and child_personality_count (numeric).
 
 ```{r child-personality}
-# inspect
-child_personality_cols
-
 df_bite %>% 
   filter(!is.na(personality_at_bite__other)) %>% 
   select(personality_at_bite__other) %>% 
